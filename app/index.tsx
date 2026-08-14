@@ -77,7 +77,7 @@ export default function Inicio() {
           materiaId: materia.id,
           frenteId,
           componente: componente as keyof NotasFrente,
-          valor: valor.toNumber().toFixed(1).replace(".", ","),
+          valor: valor.toFixed(spec.escala.casasDecimais).replace(".", ","),
           simulado: true,
         })
       );
@@ -97,6 +97,7 @@ export default function Inicio() {
           <>
             <HeaderInicio termoSelecionado={termoSelecionado} onSelecionarTermo={(t) => dispatch(selecionarTermo(t))} />
             <CartaoMeta
+              escala={spec.escala}
               mediaGeral={mediaGeral}
               termoSelecionado={termoSelecionado}
               quantidadeMaterias={materias.length}
@@ -148,12 +149,13 @@ export default function Inicio() {
 
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: cores.fundo },
-  conteudo: { paddingHorizontal: 20, paddingBottom: 32 },
-  listaTitulo: { marginTop: 22, marginBottom: 10 },
+  conteudo: { paddingBottom: 32 },
+  listaTitulo: { marginTop: 22, marginBottom: 10, marginHorizontal: 20 },
   tituloSecao: { fontWeight: "700", fontSize: 15, color: cores.texto },
-  itemLista: { marginBottom: 0 },
+  itemLista: { marginBottom: 0, marginHorizontal: 20 },
   botaoAdicionar: {
     marginTop: 14,
+    marginHorizontal: 20,
     borderWidth: 1.5,
     borderColor: cores.rosaClaro,
     borderStyle: "dashed",

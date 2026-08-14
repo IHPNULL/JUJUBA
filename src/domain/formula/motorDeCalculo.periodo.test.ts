@@ -37,4 +37,9 @@ describe("mediaEntreFrentes", () => {
   it("lança FormulaError se a lista estiver vazia", () => {
     expect(() => mediaEntreFrentes([])).toThrow("mediaEntreFrentes");
   });
+
+  it("não arredonda: 6,9 e 7,0 resultam no Decimal exato 6.95, não 7", () => {
+    const resultado = mediaEntreFrentes([new Decimal("6.9"), new Decimal("7.0")]);
+    expect(resultado.toString()).toBe("6.95");
+  });
 });

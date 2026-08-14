@@ -215,8 +215,7 @@ Duas garantias de projeto:
   monotônica, inclusive as com `if`, `max()` e recuperação — que é justamente onde
   a inversão algébrica quebraria.
 
-Enquanto a fórmula real não chega, o app roda com uma spec padrão
-(`specs/exemplo-media-bimestral.json`) claramente marcada como provisória na UI.
+O app roda com a fórmula real (`specs/formula-real-trimestral.json`) ativa.
 
 ## 9. Telas (v1)
 

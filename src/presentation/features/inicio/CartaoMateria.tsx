@@ -1,6 +1,8 @@
 import Decimal from "decimal.js";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { avaliarPeriodo, mediaEntreFrentes } from "../../../domain/formula/motorDeCalculo";
+import { resolverMinimosComponentes } from "../../../domain/formula/componentGoalSolver";
+import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
 import { Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores, paletaMateria } from "../../shared/theme";
@@ -29,8 +31,8 @@ function paraDecimal(valor: string): Decimal {
   return Number.isFinite(numero) ? new Decimal(numero) : new Decimal(0);
 }
 
-function formatarUmaCasa(valor: Decimal): string {
-  return valor.toNumber().toFixed(1).replace(".", ",");
+function paraDecimalOuNulo(valor: string | undefined): Decimal | null {
+  return valor ? paraDecimal(valor) : null;
 }
 
 export function CartaoMateria({
@@ -54,7 +56,38 @@ export function CartaoMateria({
     });
   });
   const mediaMateria = mediaEntreFrentes(mediasFrentes);
-  const alcancouMeta = mediaMateria.gte(new Decimal(meta));
+  const { arredondado: mediaMateriaArredondada, texto: mediaMateriaTexto } = arredondarEFormatar(
+    mediaMateria,
+    spec.escala
+  );
+  const alcancouMeta = mediaMateriaArredondada.gte(new Decimal(meta));
+  const metaTexto = arredondarEFormatar(new Decimal(meta), spec.escala).texto;
+
+  const resultadosMinimos = materia.frentes.map((frente) => {
+    const notas = frente.notas[termoSelecionado];
+    const preenchidos: Record<string, Decimal | null> = {
+      at: paraDecimalOuNulo(notas?.at),
+      ao: paraDecimalOuNulo(notas?.ao),
+      saep: paraDecimalOuNulo(notas?.saep),
+      tarefa: paraDecimalOuNulo(notas?.tarefa),
+    };
+    return resolverMinimosComponentes(spec, preenchidos, new Decimal(meta));
+  });
+  const algumImpossivel = resultadosMinimos.some((resultado) => resultado.tipo === "impossivel");
+  const algumComVazios = resultadosMinimos.some((resultado) => resultado.tipo !== "semVazios");
+
+  let dicaTexto: string;
+  let dicaCor: string | undefined;
+  if (algumImpossivel) {
+    dicaTexto = `Nem com nota máxima nas que faltam dá ${metaTexto}.`;
+    dicaCor = cores.erro;
+  } else if (algumComVazios && !alcancouMeta) {
+    dicaTexto = "Faltam notas nesta matéria.";
+    dicaCor = cores.textoFraco;
+  } else {
+    dicaTexto = alcancouMeta ? "Meta alcançada." : "Faltam notas ou a média está abaixo da meta.";
+    dicaCor = undefined;
+  }
 
   return (
     <View style={estilos.cartao}>
@@ -71,7 +104,7 @@ export function CartaoMateria({
         <View style={estilos.cabecalhoDireita}>
           <View style={[estilos.badge, { backgroundColor: alcancouMeta ? cores.sucessoFundo : cores.erroFundo }]}>
             <Text style={[estilos.textoBadge, { color: alcancouMeta ? cores.sucesso : cores.erro }]}>
-              {formatarUmaCasa(mediaMateria)}
+              {mediaMateriaTexto}
             </Text>
           </View>
           <TouchableOpacity onPress={onRemover} style={estilos.botaoRemover}>
@@ -88,7 +121,9 @@ export function CartaoMateria({
             {materia.frentes.length > 1 && (
               <View style={estilos.linhaRotuloFrente}>
                 <Text style={estilos.rotuloFrente}>{frente.nome}</Text>
-                <Text style={estilos.mediaFrente}>média {formatarUmaCasa(mediaFrente)}</Text>
+                <Text style={estilos.mediaFrente}>
+                  média {arredondarEFormatar(mediaFrente, spec.escala).texto}
+                </Text>
               </View>
             )}
             <View style={estilos.linhaCampos}>
@@ -110,11 +145,9 @@ export function CartaoMateria({
       })}
 
       <View style={estilos.rodape}>
-        <Text style={estilos.dica}>
-          {alcancouMeta ? "Meta alcançada." : "Faltam notas ou a média está abaixo da meta."}
-        </Text>
+        <Text style={[estilos.dica, dicaCor ? { color: dicaCor } : null]}>{dicaTexto}</Text>
         <TouchableOpacity onPress={onSimularMateria} style={estilos.botaoMinimo}>
-          <Text style={estilos.textoBotaoMinimo}>Mínimo p/ {formatarUmaCasa(new Decimal(meta))}</Text>
+          <Text style={estilos.textoBotaoMinimo}>Mínimo p/ {metaTexto}</Text>
         </TouchableOpacity>
       </View>
     </View>

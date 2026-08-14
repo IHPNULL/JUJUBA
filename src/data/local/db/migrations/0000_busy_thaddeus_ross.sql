@@ -12,6 +12,7 @@ CREATE TABLE `ano_letivo` (
 CREATE TABLE `avaliacao` (
 	`id` text PRIMARY KEY NOT NULL,
 	`materia_id` text NOT NULL,
+	`frente_id` text NOT NULL,
 	`periodo_id` text NOT NULL,
 	`titulo` text NOT NULL,
 	`tipo_id` text NOT NULL,
@@ -20,7 +21,16 @@ CREATE TABLE `avaliacao` (
 	`data` text,
 	`obrigatoria` integer DEFAULT false NOT NULL,
 	FOREIGN KEY (`materia_id`) REFERENCES `materia`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`frente_id`) REFERENCES `frente`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`periodo_id`) REFERENCES `periodo`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `frente` (
+	`id` text PRIMARY KEY NOT NULL,
+	`materia_id` text NOT NULL,
+	`ordem` integer NOT NULL,
+	`nome` text NOT NULL,
+	FOREIGN KEY (`materia_id`) REFERENCES `materia`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `materia` (

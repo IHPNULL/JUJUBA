@@ -1,9 +1,12 @@
 import Decimal from "decimal.js";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { arredondarEFormatar } from "../../../domain/formula/exibicao";
+import { Escala } from "../../../domain/formula/types";
 import { ProgressRing } from "../../shared/components/ProgressRing";
 import { cores } from "../../shared/theme";
 
 interface CartaoMetaProps {
+  escala: Escala;
   mediaGeral: Decimal;
   termoSelecionado: string;
   quantidadeMaterias: number;
@@ -15,12 +18,8 @@ interface CartaoMetaProps {
   temSimulados: boolean;
 }
 
-function formatarUmaCasa(valor: Decimal | number): string {
-  const numero = valor instanceof Decimal ? valor.toNumber() : valor;
-  return numero.toFixed(1).replace(".", ",");
-}
-
 export function CartaoMeta({
+  escala,
   mediaGeral,
   termoSelecionado,
   quantidadeMaterias,
@@ -31,10 +30,16 @@ export function CartaoMeta({
   onLimparSimulados,
   temSimulados,
 }: CartaoMetaProps) {
+  const { arredondado: mediaGeralArredondada, texto: mediaGeralTexto } = arredondarEFormatar(
+    mediaGeral,
+    escala
+  );
+  const metaTexto = arredondarEFormatar(new Decimal(meta), escala).texto;
+
   return (
     <View style={estilos.cartao}>
       <View style={estilos.linhaResumo}>
-        <ProgressRing progresso={mediaGeral.toNumber() / 10} rotulo={formatarUmaCasa(mediaGeral)} />
+        <ProgressRing progresso={mediaGeralArredondada.toNumber() / 10} rotulo={mediaGeralTexto} />
         <View style={estilos.resumoTexto}>
           <Text style={estilos.rotuloResumo}>Média geral · {termoSelecionado}</Text>
           <Text style={estilos.valorResumo}>
@@ -53,7 +58,7 @@ export function CartaoMeta({
           <TouchableOpacity onPress={onMetaMenos} style={estilos.botaoStepper}>
             <Text style={estilos.textoStepper}>−</Text>
           </TouchableOpacity>
-          <Text style={estilos.valorMeta}>{formatarUmaCasa(meta)}</Text>
+          <Text style={estilos.valorMeta}>{metaTexto}</Text>
           <TouchableOpacity onPress={onMetaMais} style={estilos.botaoStepper}>
             <Text style={estilos.textoStepper}>+</Text>
           </TouchableOpacity>
@@ -62,7 +67,7 @@ export function CartaoMeta({
 
       <View style={estilos.linhaAcoes}>
         <TouchableOpacity onPress={onSimularTudo} style={estilos.botaoSimular}>
-          <Text style={estilos.textoBotaoSimular}>Simular mínimo p/ {formatarUmaCasa(meta)}</Text>
+          <Text style={estilos.textoBotaoSimular}>Simular mínimo p/ {metaTexto}</Text>
         </TouchableOpacity>
         {temSimulados && (
           <TouchableOpacity onPress={onLimparSimulados} style={estilos.botaoLimpar}>

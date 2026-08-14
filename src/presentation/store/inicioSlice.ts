@@ -114,12 +114,12 @@ const inicioSlice = createSlice({
             const chave = chaveSimulado(materia.id, termo, frente.id, componente);
             if (state.simulados[chave]) {
               limpas[componente] = "";
+              delete state.simulados[chave];
             }
           });
           frente.notas[termo] = limpas;
         }
       }
-      state.simulados = {};
     },
   },
 });
