@@ -1,0 +1,60 @@
+name: Diag (temporary)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Node + ABI info
+        run: |
+          node -v
+          node -p "process.versions.modules"
+          node -p "process.arch + ' ' + process.platform"
+
+      - name: Which better-sqlite3 binary is used
+        run: |
+          ls -la node_modules/better-sqlite3/build/Release/ 2>&1 || echo "no build/Release"
+          ls -la node_modules/better-sqlite3/prebuilds/ 2>&1 || echo "no prebuilds"
+          find node_modules/better-sqlite3 -name "*.node" -exec file {} \; 2>&1
+
+      - name: A. plain node require (no jest)
+        run: |
+          node -e "const D=require('better-sqlite3'); const db=new D(':memory:'); db.exec('create table t(a)'); console.log('PLAIN NODE OK');"
+          echo "exit=$?"
+
+      - name: B. jest, node environment, sqlite only
+        run: |
+          mkdir -p diagtests
+          cat > diagtests/sqlite.test.js <<'EOF'
+          /** @jest-environment node */
+          test('load sqlite', () => {
+            console.log('TYPEOF_WINDOW:', typeof window);
+            const D = require('better-sqlite3');
+            const db = new D(':memory:');
+            db.exec('create table t(a)');
+            expect(1).toBe(1);
+          });
+          EOF
+          npx jest --ci --rootDir . --testMatch '**/diagtests/sqlite.test.js' 2>&1
+          echo "exit=$?"
+
+      - name: C. jest with project preset, sqlite only
+        if: always()
+        run: |
+          npx jest --ci src/data/repositories/materiaRepositoryDrizzle.test.ts 2>&1
+          echo "exit=$?"
+
+      - name: D. jest, RN test then sqlite test (the failing order)
+        if: always()
+        run: |
+          npx jest --ci --runInBand src/presentation/features/inicio/Inicio.test.tsx src/data/repositories/materiaRepositoryDrizzle.test.ts 2>&1
+          echo "exit=$?"
