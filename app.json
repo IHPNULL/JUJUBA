@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "updates": {
-      "url": "https://u.expo.dev/PROJECT_ID",
+      "url": "https://u.expo.dev/39dae08b-1ea5-4f83-bd69-56b6d2dde61c",
       "checkAutomatically": "NEVER"
     },
     "runtimeVersion": {
@@ -24,7 +24,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.jujuba"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,6 +37,12 @@
       "expo-sharing",
       "expo-secure-store",
       "expo-updates"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "39dae08b-1ea5-4f83-bd69-56b6d2dde61c"
+      }
+    }
   }
 }
