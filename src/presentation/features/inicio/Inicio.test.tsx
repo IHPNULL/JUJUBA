@@ -3,9 +3,9 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import mockSafeAreaContext from "react-native-safe-area-context/jest/mock";
-import Inicio from "./index";
-import specReducer from "../src/presentation/store/specSlice";
-import inicioReducer from "../src/presentation/store/inicioSlice";
+import Inicio from "../../../../app/index";
+import specReducer from "../../store/specSlice";
+import inicioReducer from "../../store/inicioSlice";
 
 // SafeAreaView/SafeAreaProvider need measured frame/insets to render children
 // in the test renderer — use the library's own jest mock, the same one its
@@ -31,6 +31,15 @@ function criarLojaDeTeste() {
  * quanto para o selo de aprovado/reprovado — o bug do Finding 1 comparava
  * o valor não-arredondado (6,95 < meta 7) contra um texto já arredondado
  * ("7,0"), fazendo o selo aparecer errado mesmo com o número certo.
+ *
+ * Este arquivo mora aqui (fora de `app/`) de propósito: o Expo Router trata
+ * qualquer arquivo dentro de `app/` como candidato a rota e o inclui no
+ * bundle de produção — um `app/index.test.tsx` fazia o `@testing-library/
+ * react-native` (dependência só de teste) ser arrastado para o bundle real
+ * do app, quebrando o build Android (`Unable to resolve module console`,
+ * vindo de `@testing-library/react-native/dist/helpers/logger.js`, que o
+ * Metro não consegue resolver fora de um ambiente Node). Testar `app/
+ * index.tsx` a partir de fora do diretório `app/` evita isso.
  */
 describe("Inicio (app/index.tsx) — fluxo composto", () => {
   it("adiciona uma matéria de duas frentes e exibe a média arredondada de forma consistente com o selo de meta", async () => {
