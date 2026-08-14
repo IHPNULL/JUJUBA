@@ -29,8 +29,10 @@
   "devDependencies": {
     "@react-native/jest-preset": "^0.86.2",
     "@testing-library/react-native": "^14.0.1",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
+    "better-sqlite3": "^13.0.3",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^57.0.1",
