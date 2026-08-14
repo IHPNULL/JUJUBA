@@ -68,8 +68,8 @@ npx expo start
 - Branch `main` protegida; trabalho em `feat/*`, `fix/*`, `docs/*`; merge via PR.
 - Commits em [Conventional Commits](https://www.conventionalcommits.org/).
 - Toda decisão arquitetural relevante vira um ADR em `docs/adr/`.
-- Cobertura mínima de 90% em `lib/domain/formula/`.
+- Cobertura mínima de 90% em `src/domain/formula/`.
 
 ## Licença
 
-Privado. Todos os direitos reservados.
+MIT — ver [`LICENSE`](LICENSE).
