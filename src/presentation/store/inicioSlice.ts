@@ -41,7 +41,7 @@ const initialState: InicioState = {
   simulados: {},
 };
 
-function chaveSimulado(materiaId: string, termo: string, frenteId: string, componente: string): string {
+export function chaveSimulado(materiaId: string, termo: string, frenteId: string, componente: string): string {
   return `${materiaId}|${termo}|${frenteId}|${componente}`;
 }
 

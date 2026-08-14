@@ -4,7 +4,7 @@ import { avaliarPeriodo, mediaEntreFrentes } from "../../../domain/formula/motor
 import { resolverMinimosComponentes } from "../../../domain/formula/componentGoalSolver";
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
-import { Materia, NotasFrente } from "../../store/inicioSlice";
+import { chaveSimulado, Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores, paletaMateria } from "../../shared/theme";
 
 interface CartaoMateriaProps {
@@ -12,6 +12,7 @@ interface CartaoMateriaProps {
   materia: Materia;
   termoSelecionado: string;
   meta: number;
+  simulados: Record<string, boolean>;
   onDefinirNota: (frenteId: string, componente: keyof NotasFrente, valor: string) => void;
   onSimularMateria: () => void;
   onRemover: () => void;
@@ -31,15 +32,12 @@ function paraDecimal(valor: string): Decimal {
   return Number.isFinite(numero) ? new Decimal(numero) : new Decimal(0);
 }
 
-function paraDecimalOuNulo(valor: string | undefined): Decimal | null {
-  return valor ? paraDecimal(valor) : null;
-}
-
 export function CartaoMateria({
   spec,
   materia,
   termoSelecionado,
   meta,
+  simulados,
   onDefinirNota,
   onSimularMateria,
   onRemover,
@@ -65,11 +63,20 @@ export function CartaoMateria({
 
   const resultadosMinimos = materia.frentes.map((frente) => {
     const notas = frente.notas[termoSelecionado];
+
+    function valorOuVazio(componente: keyof NotasFrente): Decimal | null {
+      const valor = notas?.[componente];
+      if (!valor) return null;
+      const chave = chaveSimulado(materia.id, termoSelecionado, frente.id, componente);
+      if (simulados[chave]) return null;
+      return paraDecimal(valor);
+    }
+
     const preenchidos: Record<string, Decimal | null> = {
-      at: paraDecimalOuNulo(notas?.at),
-      ao: paraDecimalOuNulo(notas?.ao),
-      saep: paraDecimalOuNulo(notas?.saep),
-      tarefa: paraDecimalOuNulo(notas?.tarefa),
+      at: valorOuVazio("at"),
+      ao: valorOuVazio("ao"),
+      saep: valorOuVazio("saep"),
+      tarefa: valorOuVazio("tarefa"),
     };
     return resolverMinimosComponentes(spec, preenchidos, new Decimal(meta));
   });

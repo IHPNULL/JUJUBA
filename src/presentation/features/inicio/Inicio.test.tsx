@@ -85,4 +85,53 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     // produziria antes da correção do Finding 1.
     expect(tela.getByText("Meta alcançada.")).toBeTruthy();
   });
+
+  /**
+   * Reproduz o bug relatado após o uso real do app instalado: os campos
+   * preenchidos por "Simular" ficavam travados no valor antigo ao simular
+   * de novo, porque o solver tratava qualquer campo não-vazio como
+   * "digitado pelo usuário" — mesmo quando o próprio valor vinha de uma
+   * simulação anterior. Aqui: digita AT, simula (preenche AO/SAEP/Tarefa),
+   * corrige o AT digitado e simula de novo — os campos que a simulação
+   * anterior preencheu precisam mudar de valor, não permanecer travados.
+   */
+  it("recalcula campos preenchidos por simulação anterior ao simular de novo", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    const camposIniciais = tela.getAllByPlaceholderText("0,0");
+    expect(camposIniciais).toHaveLength(4); // AT, Objetiva, SAEP, Tarefa — frente única
+
+    // Só o AT é digitado pelo usuário; meta padrão é 7.
+    await fireEvent.changeText(camposIniciais[0], "5,0");
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+    let campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[2].props.value).toBe("7,5"); // SAEP
+    expect(campos[3].props.value).toBe("0,8"); // Tarefa
+
+    // Usuário corrige o valor que ele mesmo digitou — os campos que a
+    // simulação anterior preencheu (AO/SAEP/Tarefa) precisam voltar a ser
+    // tratados como reabertos na próxima simulação, não como "já
+    // preenchidos" (o que faria o botão não atualizar nada, reproduzindo
+    // o bug relatado).
+    await fireEvent.changeText(campos[0], "8,0");
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("5,0"));
+    campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[2].props.value).toBe("5,0"); // SAEP
+    expect(campos[3].props.value).toBe("0,5"); // Tarefa
+  });
 });

@@ -9,6 +9,7 @@ import { FormulaSpec } from "../src/domain/formula/types";
 import { especificarFormulaAtiva } from "../src/presentation/store/specSlice";
 import {
   adicionarMateria,
+  chaveSimulado,
   definirMeta,
   definirNotaComponente,
   limparSimulados,
@@ -63,11 +64,20 @@ export default function Inicio() {
     const frente = materia.frentes.find((f) => f.id === frenteId);
     if (!frente) return;
     const notas = frente.notas[termoSelecionado];
+
+    function valorOuVazio(componente: keyof NotasFrente): Decimal | null {
+      const valor = notas?.[componente];
+      if (!valor) return null;
+      const chave = chaveSimulado(materia.id, termoSelecionado, frenteId, componente);
+      if (simulados[chave]) return null;
+      return paraDecimal(valor);
+    }
+
     const preenchidos: Record<string, Decimal | null> = {
-      at: notas?.at ? paraDecimal(notas.at) : null,
-      ao: notas?.ao ? paraDecimal(notas.ao) : null,
-      saep: notas?.saep ? paraDecimal(notas.saep) : null,
-      tarefa: notas?.tarefa ? paraDecimal(notas.tarefa) : null,
+      at: valorOuVazio("at"),
+      ao: valorOuVazio("ao"),
+      saep: valorOuVazio("saep"),
+      tarefa: valorOuVazio("tarefa"),
     };
     const resultado = resolverMinimosComponentes(spec, preenchidos, new Decimal(meta));
     if (resultado.tipo !== "valores" && resultado.tipo !== "jaAlcancado") return;
@@ -120,6 +130,7 @@ export default function Inicio() {
               materia={item}
               termoSelecionado={termoSelecionado}
               meta={meta}
+              simulados={simulados}
               onDefinirNota={(frenteId, componente, valor) =>
                 dispatch(definirNotaComponente({ materiaId: item.id, frenteId, componente, valor }))
               }
