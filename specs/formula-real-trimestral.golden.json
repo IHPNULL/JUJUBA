@@ -1,0 +1,27 @@
+[
+  {
+    "nome": "matemática 1º tri — SAEP não lançado",
+    "entrada": { "at": 8.5, "ao": 7, "saep": 0, "tarefa": 1 },
+    "esperado": 7.0
+  },
+  {
+    "nome": "física frente 1 — todos os campos preenchidos",
+    "entrada": { "at": 7, "ao": 6.5, "saep": 7, "tarefa": 0.5 },
+    "esperado": 7.4
+  },
+  {
+    "nome": "física frente 2 — objetiva e SAEP não lançados",
+    "entrada": { "at": 8, "ao": 0, "saep": 0, "tarefa": 1 },
+    "esperado": 5.0
+  },
+  {
+    "nome": "português — arredondamento half_up na fronteira",
+    "entrada": { "at": 9, "ao": 8, "saep": 7.5, "tarefa": 1 },
+    "esperado": 9.4
+  },
+  {
+    "nome": "nota máxima em tudo — teto de 10 aplicado",
+    "entrada": { "at": 10, "ao": 10, "saep": 10, "tarefa": 1 },
+    "esperado": 10.0
+  }
+]

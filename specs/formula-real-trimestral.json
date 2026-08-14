@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "real-trimestral-v1",
+  "versao": 1,
+  "nome": "Média trimestral (AT dobrada + Objetiva + SAEP, com bônus de tarefa)",
+  "descricao": "Fórmula real: (AT×2 + Objetiva + SAEP) / 4 + Tarefa, limitada a 10. Extraída do mockup Jujuba.dc.html.",
+  "provisoria": false,
+  "periodos": { "tipo": "trimestre", "quantidade": 3, "rotulos": ["1º Tri", "2º Tri", "3º Tri"] },
+  "escala": { "min": 0, "max": 10, "casasDecimais": 1, "arredondamento": "half_up" },
+  "componentes": [
+    { "id": "at", "rotulo": "AT", "peso": 2, "notaMaxima": 10, "obrigatorio": true },
+    { "id": "ao", "rotulo": "Objetiva", "peso": 1, "notaMaxima": 10 },
+    { "id": "saep", "rotulo": "SAEP", "peso": 1, "notaMaxima": 10 },
+    { "id": "tarefa", "rotulo": "Tarefa", "peso": 1, "notaMaxima": 1 }
+  ],
+  "calculos": {
+    "mediaPeriodo": "min(10, (at * 2 + ao + saep) / 4 + tarefa)",
+    "mediaFinal": "media(periodos)"
+  },
+  "criterios": {
+    "aprovado": "mediaFinal >= 6"
+  },
+  "meta": { "notaParaAprovacao": 6.0, "fonte": "mockup Jujuba.dc.html — meta de aprovação ajustável pelo usuário na UI, este valor é só o default do critério (não usado pela tela Início nesta passada)." }
+}
