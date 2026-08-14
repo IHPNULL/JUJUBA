@@ -301,8 +301,16 @@ describe("resolverMinimosComponentes — specs/formula-real-trimestral", () => {
   });
 
   it("distribui o déficit proporcionalmente entre AT e Objetiva vazios (SAEP=7, Tarefa=0,5, meta=7)", () => {
-    // have = (0+0+7)/4+0.5 = 2.25; coef(at)=0.5, coef(ao)=0.25; capacidade = 0.5*10+0.25*10 = 7.5
-    // déficit = 7-2.25 = 4.75; x = 4.75/7.5 = 0.6333...; valor bruto = x*10 = 6.333... -> arredonda p/ cima 1 casa: 6.4
+    // `have` vem de avaliarPeriodo, que SEMPRE arredonda (Task 2) — não é
+    // 2.25 (bruto), é 2.3 (2.25 arredondado half_up a 1 casa). A partir daí:
+    // coef(at) = (avaliarPeriodo({at:10,ao:0,saep:7,tarefa:0.5}) - have)/10
+    //          = (7.3 - 2.3)/10 = 0.5   [avaliarPeriodo({at:10,...}) = 7.25 -> 7.3]
+    // coef(ao) = (avaliarPeriodo({at:0,ao:10,saep:7,tarefa:0.5}) - have)/10
+    //          = (4.8 - 2.3)/10 = 0.25  [avaliarPeriodo({ao:10,...}) = 4.75 -> 4.8]
+    // capacidade = 0.5*10 + 0.25*10 = 7.5; déficit = 7 - 2.3 = 4.7
+    // x = 4.7/7.5 = 0.62666...; valor bruto = x*10 = 6.2666... -> arredonda p/ cima 1 casa: 6.3
+    // Verificação (o solver faz isso internamente, ver Step 3): avaliarPeriodo
+    // com at=ao=6.3 dá (12.6+6.3+7)/4+0.5 = 6.975 -> arredonda para 7.0 >= meta. Confirma 6.3 sem precisar subir mais.
     const resultado = resolverMinimosComponentes(
       specTipada,
       { at: null, ao: null, saep: new Decimal(7), tarefa: new Decimal("0.5") },
@@ -310,8 +318,8 @@ describe("resolverMinimosComponentes — specs/formula-real-trimestral", () => {
     );
     expect(resultado.tipo).toBe("valores");
     if (resultado.tipo === "valores") {
-      expect(resultado.valores.at.toNumber()).toBe(6.4);
-      expect(resultado.valores.ao.toNumber()).toBe(6.4);
+      expect(resultado.valores.at.toNumber()).toBe(6.3);
+      expect(resultado.valores.ao.toNumber()).toBe(6.3);
     }
   });
 
@@ -449,7 +457,56 @@ export function resolverMinimosComponentes(
     valores[vazio.id] = Decimal.min(Decimal.max(arredondadoParaCima, new Decimal(0)), notaMaxima);
   }
 
-  return { tipo: "valores", valores };
+  return ajustarAteVerificar(spec, preenchidos, vazios, valores, meta);
+}
+
+/**
+ * `have`/`coeficientes`/`capacidade` são construídos a partir de
+ * `avaliarPeriodo`, que SEMPRE arredonda (Task 2) — então o `x` calculado
+ * acima é uma estimativa sobre valores já arredondados, não sobre a
+ * aritmética exata. Isso pode, em tese, sugerir um valor que — depois de
+ * recalculado pelo `avaliarPeriodo` real com os componentes preenchidos —
+ * fica um pouquinho abaixo da meta. Em vez de confiar cegamente na
+ * estimativa linear, verifica contra o avaliador de verdade (o mesmo
+ * princípio do `goalSolver.ts`: nunca confiar no modelo, confiar no
+ * resultado real) e sobe um passo de escala por vez, em todos os vazios
+ * simultaneamente, até bater a meta de verdade ou esgotar o intervalo.
+ */
+function ajustarAteVerificar(
+  spec: FormulaSpec,
+  preenchidos: Record<string, Decimal | null>,
+  vazios: ComponenteSpec[],
+  valoresIniciais: Record<string, Decimal>,
+  meta: Decimal
+): ResultadoMinimosComponentes {
+  const valores = { ...valoresIniciais };
+  const passoDaEscala = new Decimal(10).pow(-spec.escala.casasDecimais);
+  const MAX_TENTATIVAS = 50;
+
+  for (let tentativa = 0; tentativa < MAX_TENTATIVAS; tentativa++) {
+    const resultado = avaliarPeriodo(spec, construirContexto(spec, preenchidos, vazios, (c) => valores[c.id]));
+    if (resultado.gte(meta)) {
+      return { tipo: "valores", valores };
+    }
+    let algumSubiu = false;
+    for (const vazio of vazios) {
+      const notaMaxima = notaMaximaObrigatoria(vazio);
+      if (valores[vazio.id].lt(notaMaxima)) {
+        valores[vazio.id] = Decimal.min(valores[vazio.id].plus(passoDaEscala), notaMaxima);
+        algumSubiu = true;
+      }
+    }
+    if (!algumSubiu) break;
+  }
+
+  // Todos os vazios já no máximo (ou MAX_TENTATIVAS esgotado) e ainda não
+  // basta — a estimativa linear divergiu demais do real. Reporta o melhor
+  // resultado genuíno possível em vez de um valor "sugerido" que não entrega.
+  const melhorPossivel = avaliarPeriodo(
+    spec,
+    construirContexto(spec, preenchidos, vazios, (componente) => notaMaximaObrigatoria(componente))
+  );
+  return { tipo: "impossivel", melhorPossivel };
 }
 
 function construirContexto(
