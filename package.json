@@ -9,6 +9,7 @@
     "drizzle-orm": "^0.45.2",
     "expo": "~57.0.12",
     "expo-constants": "~57.0.10",
+    "expo-dev-client": "~57.0.12",
     "expo-document-picker": "~57.0.1",
     "expo-file-system": "~57.0.2",
     "expo-linking": "~57.0.5",
@@ -49,7 +50,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dev:build": "eas-cli build --profile development --platform android",
+    "dev:install": "eas-cli build:run --platform android --latest",
+    "dev:link": "adb reverse tcp:8081 tcp:8081",
+    "dev": "npm run dev:link && expo start --dev-client"
   },
   "private": true,
   "engines": {

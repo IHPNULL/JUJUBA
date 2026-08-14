@@ -48,6 +48,7 @@ npx eas-cli build --platform android --profile preview
 | Documento | Conteúdo |
 |---|---|
 | [`docs/COMO-INSTALAR.md`](docs/COMO-INSTALAR.md) | Como instalar o `.apk` no Android |
+| [`docs/DEV-BUILD.md`](docs/DEV-BUILD.md) | Rodar no celular plugado, com recarga automática |
 | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Camadas, modelo de domínio, persistência, telas, testes |
 | [`docs/MOTOR-DE-FORMULA.md`](docs/MOTOR-DE-FORMULA.md) | Linguagem da fórmula, pipeline de avaliação, `GoalSolver` |
 | [`docs/TECNOLOGIAS.md`](docs/TECNOLOGIAS.md) | Cada escolha de tecnologia, por quê, e o trade-off |
@@ -82,6 +83,15 @@ npx eas-cli build --platform android --profile preview
 npm install
 npm run test
 npx expo start
+```
+
+Para rodar no **celular plugado no computador**, com recarga automática a
+cada alteração, ver [`docs/DEV-BUILD.md`](docs/DEV-BUILD.md):
+
+```bash
+npm run dev:build     # compila o development build na nuvem (uma vez)
+npm run dev:install   # instala no aparelho plugado
+npm run dev           # sobe o Metro e liga o celular pelo cabo
 ```
 
 ## Atualizações OTA (EAS Update)
