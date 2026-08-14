@@ -1,3 +1,13 @@
+/**
+ * Testes de repositório carregam `better-sqlite3` (addon nativo N-API) via
+ * `createTestDatabase`. O preset do jest-expo roda tudo no ambiente
+ * customizado do React Native, e carregar um addon nativo nesse ambiente
+ * derrubava o processo com SIGSEGV no `dlopen` (crash no CI Linux, ver
+ * backtrace em napi_module_register_by_symbol). Estes testes são Node puro
+ * — sem React, sem RN — então rodam no ambiente `node`.
+ *
+ * @jest-environment node
+ */
 import { createTestDatabase } from "../local/db/testClient";
 import type { AppDatabase } from "../local/db/client";
 import { AnoLetivoRepositoryDrizzle } from "./anoLetivoRepositoryDrizzle";
