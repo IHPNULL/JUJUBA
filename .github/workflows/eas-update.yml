@@ -23,7 +23,7 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test -- --ci
+        run: npm test -- --ci --runInBand
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
