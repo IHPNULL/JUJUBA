@@ -1,0 +1,27 @@
+[
+  {
+    "nome": "aprovado direto",
+    "entrada": { "P1": 8.0, "P2": 7.5, "P3": 9.0, "P4": 6.5, "recuperacao": null, "frequencia": 0.92 },
+    "esperado": { "mediaAnual": 7.8, "mediaFinal": 7.8, "situacao": "aprovado" }
+  },
+  {
+    "nome": "vai para recuperacao",
+    "entrada": { "P1": 5.0, "P2": 4.5, "P3": 6.0, "P4": 5.5, "recuperacao": null, "frequencia": 0.90 },
+    "esperado": { "mediaAnual": 5.3, "situacao": "recuperacao" }
+  },
+  {
+    "nome": "recuperacao salva o aluno",
+    "entrada": { "P1": 5.0, "P2": 4.5, "P3": 6.0, "P4": 5.5, "recuperacao": 9.0, "frequencia": 0.90 },
+    "esperado": { "mediaFinal": 7.2, "situacao": "aprovado" }
+  },
+  {
+    "nome": "reprovado por frequencia mesmo com nota alta",
+    "entrada": { "P1": 9.0, "P2": 9.0, "P3": 9.0, "P4": 9.0, "recuperacao": null, "frequencia": 0.60 },
+    "esperado": { "mediaFinal": 9.0, "situacao": "reprovado" }
+  },
+  {
+    "nome": "arredondamento half_up na fronteira",
+    "entrada": { "P1": 5.95, "P2": 5.95, "P3": 5.95, "P4": 5.95, "recuperacao": null, "frequencia": 0.99 },
+    "esperado": { "mediaFinal": 6.0, "situacao": "aprovado" }
+  }
+]

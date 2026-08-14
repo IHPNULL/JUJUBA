@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "exemplo-media-bimestral",
+  "versao": 1,
+  "nome": "Media ponderada bimestral (provisoria)",
+  "descricao": "Regra padrao usada enquanto a formula definitiva nao e fornecida.",
+  "provisoria": true,
+
+  "periodos": {
+    "tipo": "bimestre",
+    "quantidade": 4,
+    "rotulos": ["1o Bimestre", "2o Bimestre", "3o Bimestre", "4o Bimestre"]
+  },
+
+  "escala": { "min": 0, "max": 10, "casasDecimais": 1, "arredondamento": "half_up" },
+
+  "componentes": [
+    { "id": "prova",        "rotulo": "Prova",         "peso": 6, "notaMaxima": 10, "obrigatorio": true },
+    { "id": "trabalho",     "rotulo": "Trabalho",      "peso": 3, "notaMaxima": 10 },
+    { "id": "participacao", "rotulo": "Participacao",  "peso": 1, "notaMaxima": 10 }
+  ],
+
+  "calculos": {
+    "mediaPeriodo": "somaPonderada(componentes) / somaPesos(componentes)",
+    "mediaAnual":   "media(periodos)",
+    "mediaFinal":   "se(recuperacao == nulo, mediaAnual, max(mediaAnual, (mediaAnual + recuperacao) / 2))"
+  },
+
+  "criterios": {
+    "recuperacao": "mediaAnual >= 3 && mediaAnual < 6 && frequencia >= 0.75",
+    "aprovado":    "mediaFinal >= 6 && frequencia >= 0.75",
+    "reprovado":   "mediaFinal < 6 || frequencia < 0.75"
+  },
+
+  "recuperacao": { "habilitada": true, "escopo": "anual", "substituiMedia": false },
+  "frequencia":  { "considerada": true, "minima": 0.75 },
+
+  "meta": { "notaParaAprovacao": 6.0, "frequenciaMinima": 0.75, "fonte": "placeholder" }
+}

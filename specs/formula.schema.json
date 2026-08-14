@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/notas-app/formula.schema.json",
+  "title": "FormulaSpec",
+  "description": "Especificacao declarativa da regra de calculo de notas de um ano letivo.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "versao", "nome", "periodos", "escala", "componentes", "calculos", "criterios"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Versao da LINGUAGEM da spec (nao da spec em si)."
+    },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "versao": { "type": "integer", "minimum": 1 },
+    "nome": { "type": "string", "minLength": 1 },
+    "descricao": { "type": "string" },
+    "provisoria": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se true, a UI exibe selo de regra provisoria."
+    },
+
+    "periodos": {
+      "type": "object",
+      "required": ["tipo", "quantidade"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "enum": ["bimestre", "trimestre", "semestre", "anual"] },
+        "quantidade": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "rotulos": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "escala": {
+      "type": "object",
+      "required": ["min", "max", "casasDecimais", "arredondamento"],
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "casasDecimais": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "arredondamento": { "enum": ["half_up", "half_even", "floor", "ceil", "truncate"] }
+      }
+    },
+
+    "componentes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rotulo", "peso"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$" },
+          "rotulo": { "type": "string" },
+          "peso": { "type": "number", "minimum": 0 },
+          "notaMaxima": { "type": "number", "exclusiveMinimum": 0 },
+          "obrigatorio": { "type": "boolean", "default": false },
+          "quantidadePorPeriodo": { "type": "integer", "minimum": 1, "default": 1 }
+        }
+      }
+    },
+
+    "calculos": {
+      "type": "object",
+      "required": ["mediaPeriodo", "mediaFinal"],
+      "additionalProperties": { "type": "string" },
+      "properties": {
+        "mediaPeriodo": { "type": "string" },
+        "mediaAnual": { "type": "string" },
+        "mediaFinal": { "type": "string" }
+      },
+      "description": "Expressoes avaliadas pelo motor. Somente funcoes da whitelist sao aceitas."
+    },
+
+    "criterios": {
+      "type": "object",
+      "required": ["aprovado"],
+      "additionalProperties": false,
+      "properties": {
+        "aprovado": { "type": "string" },
+        "recuperacao": { "type": "string" },
+        "reprovado": { "type": "string" }
+      },
+      "description": "Expressoes booleanas avaliadas na ordem: recuperacao, aprovado, reprovado."
+    },
+
+    "recuperacao": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "habilitada": { "type": "boolean", "default": false },
+        "escopo": { "enum": ["periodo", "anual", "ambos"] },
+        "substituiMedia": { "type": "boolean", "default": false }
+      }
+    },
+
+    "frequencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "considerada": { "type": "boolean", "default": true },
+        "minima": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "notaParaAprovacao": { "type": "number" },
+        "frequenciaMinima": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fonte": { "type": "string", "description": "Ex.: prospecto 2026, pagina 12." }
+      }
+    }
+  }
+}
