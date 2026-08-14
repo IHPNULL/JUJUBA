@@ -1,6 +1,7 @@
 export * from "./anoLetivoMapper";
 export * from "./periodoMapper";
 export * from "./materiaMapper";
+export * from "./frenteMapper";
 export * from "./avaliacaoMapper";
 export * from "./notaMapper";
 export * from "./prospectoMapper";

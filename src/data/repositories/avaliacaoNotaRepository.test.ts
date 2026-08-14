@@ -4,6 +4,7 @@ import type { AppDatabase } from "../local/db/client";
 import { AnoLetivoRepositoryDrizzle } from "./anoLetivoRepositoryDrizzle";
 import { PeriodoRepositoryDrizzle } from "./periodoRepositoryDrizzle";
 import { MateriaRepositoryDrizzle } from "./materiaRepositoryDrizzle";
+import { FrenteRepositoryDrizzle } from "./frenteRepositoryDrizzle";
 import { AvaliacaoRepositoryDrizzle } from "./avaliacaoRepositoryDrizzle";
 import { NotaRepositoryDrizzle } from "./notaRepositoryDrizzle";
 import { nota as notaTable } from "../local/db/schema";
@@ -57,6 +58,13 @@ describe("Avaliação + Nota (Drizzle)", () => {
       arquivada: false,
     });
 
+    await new FrenteRepositoryDrizzle(db).criar({
+      id: "frente-1",
+      materiaId: "materia-matematica",
+      ordem: 1,
+      nome: "Única",
+    });
+
     avaliacaoRepo = new AvaliacaoRepositoryDrizzle(db);
     notaRepo = new NotaRepositoryDrizzle(db);
   });
@@ -65,6 +73,7 @@ describe("Avaliação + Nota (Drizzle)", () => {
     return {
       id: "avaliacao-prova-1",
       materiaId: "materia-matematica",
+      frenteId: "frente-1",
       periodoId: "periodo-1",
       titulo: "Prova 1",
       tipoId: "prova",

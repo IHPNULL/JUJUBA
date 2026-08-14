@@ -15,6 +15,7 @@ export function avaliacaoRowParaDominio(row: AvaliacaoRow): Avaliacao {
   return {
     id: row.id,
     materiaId: row.materiaId,
+    frenteId: row.frenteId,
     periodoId: row.periodoId,
     titulo: row.titulo,
     tipoId: row.tipoId,
@@ -29,6 +30,7 @@ export function avaliacaoDominioParaRow(entidade: Avaliacao): NovaAvaliacaoRow {
   return {
     id: entidade.id,
     materiaId: entidade.materiaId,
+    frenteId: entidade.frenteId,
     periodoId: entidade.periodoId,
     titulo: entidade.titulo,
     tipoId: entidade.tipoId,
