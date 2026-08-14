@@ -4,6 +4,7 @@ import {
   Arredondamento,
   ContextoDeCalculo,
   Escala,
+  FormulaError,
   FormulaSpec,
   ResultadoCalculado,
   Situacao,
@@ -94,4 +95,35 @@ function avaliarSituacao(spec: FormulaSpec, contexto: ContextoDeCalculo): Situac
 function comoDecimalObrigatorio(v: unknown, nome: string): Decimal {
   if (v instanceof Decimal) return v;
   throw new Error(`${nome} precisa avaliar para número, recebeu ${JSON.stringify(v)}`);
+}
+
+/**
+ * Avalia `calculos.mediaPeriodo` para uma frente/período específico, a
+ * partir dos componentes já digitados. `componentes` precisa ter uma
+ * entrada `Decimal` para cada `spec.componentes[].id` — quem chama decide
+ * como tratar um campo ainda não digitado (esta tela usa `Decimal(0)`,
+ * espelhando o comportamento do mockup `Jujuba.dc.html`, onde um campo
+ * vazio conta como zero na média ao vivo).
+ */
+export function avaliarPeriodo(spec: FormulaSpec, componentes: Record<string, Decimal>): Decimal {
+  const contexto: ContextoDeCalculo = { ...componentes };
+  const bruto = comoDecimalObrigatorio(
+    avaliarExpressao(spec.calculos.mediaPeriodo, contexto),
+    "mediaPeriodo"
+  );
+  return arredondarNaEscala(bruto, spec.escala);
+}
+
+/**
+ * Média aritmética simples entre as médias de período das frentes de uma
+ * matéria (uma matéria de frente única tem sempre length 1). Sem pesos —
+ * cada frente conta igual, espelhando `subjectMedia` do mockup. Não
+ * arredonda: quem exibe decide a precisão.
+ */
+export function mediaEntreFrentes(medias: Decimal[]): Decimal {
+  if (medias.length === 0) {
+    throw new FormulaError("mediaEntreFrentes: precisa de pelo menos uma frente");
+  }
+  const soma = medias.reduce((acumulado, media) => acumulado.plus(media), new Decimal(0));
+  return soma.div(medias.length);
 }

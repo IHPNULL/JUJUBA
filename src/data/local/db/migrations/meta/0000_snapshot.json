@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a8cb6a56-764a-4ef9-9b2f-61597917ccd3",
+  "id": "5f7ec7c7-d2e3-4b63-9a44-ae212119164f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "ano_letivo": {
@@ -88,6 +88,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "frente_id": {
+          "name": "frente_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "periodo_id": {
           "name": "periodo_id",
           "type": "text",
@@ -154,12 +161,77 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
+        "avaliacao_frente_id_frente_id_fk": {
+          "name": "avaliacao_frente_id_frente_id_fk",
+          "tableFrom": "avaliacao",
+          "tableTo": "frente",
+          "columnsFrom": [
+            "frente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "avaliacao_periodo_id_periodo_id_fk": {
           "name": "avaliacao_periodo_id_periodo_id_fk",
           "tableFrom": "avaliacao",
           "tableTo": "periodo",
           "columnsFrom": [
             "periodo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "frente": {
+      "name": "frente",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "materia_id": {
+          "name": "materia_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "frente_materia_id_materia_id_fk": {
+          "name": "frente_materia_id_materia_id_fk",
+          "tableFrom": "frente",
+          "tableTo": "materia",
+          "columnsFrom": [
+            "materia_id"
           ],
           "columnsTo": [
             "id"

@@ -148,14 +148,13 @@ Ao ativar uma nova versão, o app pergunta: **recalcular o histórico** com a no
 ou **manter** os resultados antigos? Ambos os caminhos são suportados porque toda spec
 antiga continua carregável.
 
-## 6. Enquanto a fórmula real não chega
+## 6. A fórmula real
 
-O app é entregue com `specs/exemplo-media-bimestral.json` — média ponderada simples,
-4 bimestres, aprovação com 6,0 e 75% de frequência. A UI mostra o nome da spec ativa
-com um selo **"regra provisória"** até que o usuário importe/configure a real.
-
-Isso permite desenvolver, testar e demonstrar o app inteiro **hoje**, sem bloquear
-nada — e a troca pela fórmula definitiva não toca uma linha de código de produção.
+O app roda com `specs/formula-real-trimestral.json` — (AT×2 + Obj + SAEP) ÷ 4 + tarefa,
+3 trimestres, aprovação com meta configurável pelo aluno na tela Início. A migração da
+spec provisória (`specs/exemplo-media-bimestral.json`, usada durante o desenvolvimento
+inicial) para a real não tocou uma linha de código do motor — só a troca do arquivo de
+spec ativo, confirmando a premissa do [ADR 0003](adr/0003-formula-como-dado.md).
 
 ## 7. Testes-golden
 

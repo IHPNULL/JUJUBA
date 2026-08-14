@@ -12,9 +12,9 @@ de fórmula (`src/domain/formula/`) já existem e passam nos testes-golden de
 `specs/exemplo-media-bimestral.golden.json`. Telas de cadastro, persistência (schema
 Drizzle definido, DAOs ainda não implementados) e o `GoalSolver` ainda faltam.
 
-> ⚠️ A **fórmula de cálculo definitiva ainda não foi fornecida**. Por isso o cálculo é
-> tratado como *dado* e não como código: ver [ADR 0003](docs/adr/0003-formula-como-dado.md).
-> O app roda com uma regra provisória (`specs/exemplo-media-bimestral.json`) até lá.
+> A fórmula de cálculo é tratada como *dado* e não como código: ver
+> [ADR 0003](docs/adr/0003-formula-como-dado.md). A fórmula real chegou e o app roda
+> com ela ativa (`specs/formula-real-trimestral.json`).
 
 ## Documentação
 

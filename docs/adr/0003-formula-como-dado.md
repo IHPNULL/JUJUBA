@@ -27,3 +27,10 @@ Cada `ResultadoCalculado` grava o `formulaSpecId` e a `versao` que o produziram.
   início, com cobertura de teste exigida acima de 90%.
 - (−) Risco de a fórmula real exigir construção não prevista; mitigado por
   `schemaVersion` na própria linguagem.
+
+## Nota de fechamento (2026-08-14)
+
+A fórmula real chegou e está implementada como `specs/formula-real-trimestral.json`,
+substituindo a spec provisória sem alterar o motor. Ver
+`docs/superpowers/specs/2026-08-14-formula-real-e-ui.md` para o detalhamento da
+fórmula, do conceito de "frentes" e da tela Início construídos em cima dela.

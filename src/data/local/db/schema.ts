@@ -41,11 +41,23 @@ export const materia = sqliteTable("materia", {
   arquivada: integer("arquivada", { mode: "boolean" }).notNull().default(false),
 });
 
+export const frente = sqliteTable("frente", {
+  id: text("id").primaryKey(),
+  materiaId: text("materia_id")
+    .notNull()
+    .references(() => materia.id),
+  ordem: integer("ordem").notNull(),
+  nome: text("nome").notNull(),
+});
+
 export const avaliacao = sqliteTable("avaliacao", {
   id: text("id").primaryKey(),
   materiaId: text("materia_id")
     .notNull()
     .references(() => materia.id),
+  frenteId: text("frente_id")
+    .notNull()
+    .references(() => frente.id),
   periodoId: text("periodo_id")
     .notNull()
     .references(() => periodo.id),

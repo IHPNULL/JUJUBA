@@ -13,6 +13,7 @@ import type { Nota } from "./nota";
 export interface Avaliacao {
   id: string;
   materiaId: string;
+  frenteId: string;
   periodoId: string;
   titulo: string;
   tipoId: string;
