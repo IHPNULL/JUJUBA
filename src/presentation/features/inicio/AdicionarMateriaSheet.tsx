@@ -2,6 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
 import { cores, CorMateria } from "../../shared/theme";
 
@@ -18,6 +19,7 @@ interface AdicionarMateriaSheetProps {
 }
 
 export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: AdicionarMateriaSheetProps) {
+  const insets = useSafeAreaInsets();
   const [quantidadeFrentes, setQuantidadeFrentes] = useState<1 | 2>(1);
   const [corSelecionada, setCorSelecionada] = useState<CorMateria>("pink");
   const {
@@ -42,7 +44,7 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
   return (
     <Modal visible={visivel} transparent animationType="slide" onRequestClose={fechar}>
       <TouchableOpacity style={estilos.fundo} activeOpacity={1} onPress={fechar} />
-      <View style={estilos.folha}>
+      <View style={[estilos.folha, { paddingBottom: 20 + insets.bottom }]}>
         <View style={estilos.puxador} />
         <View style={estilos.cabecalho}>
           <Text style={estilos.titulo}>Nova matéria</Text>
