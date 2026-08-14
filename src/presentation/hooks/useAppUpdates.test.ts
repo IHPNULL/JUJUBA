@@ -15,6 +15,7 @@ jest.mock('expo-updates', () => ({
 
 const mockedCheckForUpdateAsync = Updates.checkForUpdateAsync as jest.Mock;
 const mockedFetchUpdateAsync = Updates.fetchUpdateAsync as jest.Mock;
+const mockedReloadAsync = Updates.reloadAsync as jest.Mock;
 const mockedAddEventListener = jest.spyOn(AppState, 'addEventListener');
 
 function createTestStore() {
@@ -68,6 +69,44 @@ describe('useAppUpdates', () => {
     expect(mockedCheckForUpdateAsync).toHaveBeenCalledTimes(1);
     expect(mockedFetchUpdateAsync).toHaveBeenCalledTimes(1);
     expect(store.getState().updates.error).toBeNull();
+
+    // Central invariant: the hook never reloads on its own, even once an
+    // update is fully downloaded and ready ("pronta"). Only an explicit
+    // call to the returned `reloadApp` (a user tap) may trigger a reload.
+    expect(mockedReloadAsync).not.toHaveBeenCalled();
+  });
+
+  it('reloadApp calls Updates.reloadAsync only when status is "pronta", not before', async () => {
+    let resolveCheck: (value: unknown) => void = () => {};
+    mockedCheckForUpdateAsync.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    mockedFetchUpdateAsync.mockResolvedValue({ isNew: true } as unknown as Updates.UpdateFetchResult);
+
+    const store = createTestStore();
+    const { result } = await renderUseAppUpdates(store);
+
+    // Right after mount, the check is still in flight (status !== 'pronta').
+    // Calling reloadApp here must be a no-op.
+    await act(async () => {
+      await result.current.reloadApp();
+    });
+    expect(mockedReloadAsync).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveCheck({ isAvailable: true });
+    });
+
+    await waitFor(() => expect(result.current.status).toBe('pronta'));
+
+    // Only once status is 'pronta' does reloadApp actually reload.
+    await act(async () => {
+      await result.current.reloadApp();
+    });
+    expect(mockedReloadAsync).toHaveBeenCalledTimes(1);
   });
 
   it('goes checking -> idle with error set when the check fails', async () => {

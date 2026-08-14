@@ -51,6 +51,29 @@ npm run test
 npx expo start
 ```
 
+## Atualizações OTA (EAS Update)
+
+O app usa [EAS Update](https://docs.expo.dev/eas-update/introduction/) para publicar
+atualizações OTA (over-the-air): todo push em `main` que passa no CI (lint + testes)
+é publicado automaticamente para os apps já instalados, sem passar pela revisão da
+loja — o usuário só aplica a atualização ao tocar em "Atualizar agora" no
+`UpdateBanner`, nunca automaticamente (ver
+[design spec](docs/superpowers/specs/2026-08-13-ota-updates-design.md)).
+
+Isso exige três passos manuais, únicos, antes do workflow
+[`.github/workflows/eas-update.yml`](.github/workflows/eas-update.yml) funcionar:
+
+1. `eas login` (ou `npx expo login`) — vincular o projeto a uma conta Expo.
+2. `eas init` / `eas update:configure` — cria o projeto no EAS e preenche
+   `extra.eas.projectId` e `updates.url` em `app.json` (hoje `app.json` tem um
+   placeholder, `https://u.expo.dev/PROJECT_ID`, que precisa ser substituído por
+   esse passo).
+3. Gerar um `EXPO_TOKEN` (via `eas whoami --json` após login, ou no dashboard
+   [expo.dev](https://expo.dev)) e cadastrá-lo como **secret do repositório GitHub**
+   (`EXPO_TOKEN`), para o workflow publicar sem login interativo.
+
+Sem esses três passos, o workflow falha na primeira execução.
+
 ## Estrutura
 
 ```

@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppUpdates } from '../../hooks/useAppUpdates';
 
 export function UpdateBanner() {
   const { status, reloadApp } = useAppUpdates();
+  const insets = useSafeAreaInsets();
 
   if (status !== 'pronta') return null;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
       <Text style={styles.text}>Nova versão disponível!</Text>
       <TouchableOpacity style={styles.button} onPress={reloadApp}>
         <Text style={styles.buttonText}>Atualizar agora</Text>
@@ -24,7 +26,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#007AFF',
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

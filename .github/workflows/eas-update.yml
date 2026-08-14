@@ -19,10 +19,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --ci
+
       - name: Setup EAS
         uses: expo/expo-github-action@v8
         with:
-          expo-version: latest
+          eas-version: latest
           eas-cache: true
           token: ${{ secrets.EXPO_TOKEN }}
 
