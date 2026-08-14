@@ -52,6 +52,9 @@
     "lint": "eslint ."
   },
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "jest": {
     "preset": "jest-expo",
     "testPathIgnorePatterns": [
