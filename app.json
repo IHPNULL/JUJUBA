@@ -7,6 +7,13 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "updates": {
+      "url": "https://u.expo.dev/PROJECT_ID",
+      "checkAutomatically": "NEVER"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -27,7 +34,8 @@
       "expo-status-bar",
       "expo-sqlite",
       "expo-sharing",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-updates"
     ]
   }
 }
