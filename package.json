@@ -17,6 +17,7 @@
     "expo-sharing": "~57.0.11",
     "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "expo-updates": "~57.0.13",
     "jsep": "^1.4.0",
     "react": "19.2.3",
     "react-hook-form": "^7.85.0",
