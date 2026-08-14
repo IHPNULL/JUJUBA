@@ -298,7 +298,7 @@ jobs:
       - name: Setup EAS
         uses: expo/expo-github-action@v8
         with:
-          expo-version: latest
+          eas-version: latest
           eas-cache: true
           token: ${{ secrets.EXPO_TOKEN }}
 
