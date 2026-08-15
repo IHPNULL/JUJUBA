@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppUpdates } from '../../hooks/useAppUpdates';
+import { useAppUpdates } from '../hooks/useAppUpdates';
 
 export function UpdateBanner() {
   const { status, reloadApp } = useAppUpdates();

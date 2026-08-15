@@ -5,7 +5,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import * as Updates from 'expo-updates';
 import { AppState, AppStateStatus } from 'react-native';
 import { useAppUpdates } from './useAppUpdates';
-import updatesReducer from '../store/updatesSlice';
+import updatesReducer from '../../store/updatesSlice';
 
 jest.mock('expo-updates', () => ({
   checkForUpdateAsync: jest.fn(),

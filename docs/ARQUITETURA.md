@@ -80,8 +80,11 @@ Regra de dependência: as setas apontam **sempre para dentro**. `domain` não im
 das camadas de fora. Isso é o que permite testar toda a regra de nota sem simulador.
 
 ```
+app/                      # Expo Router: rotas, layout, bootstrap (fica na raiz,
+│                         #   é onde o `expo-router/entry` procura as rotas)
+assets/                   # imagens do app; assets/brand/ guarda a arte-fonte
+specs/                    # FormulaSpec: schema, exemplos e testes-golden
 src/
-├── app/                  # Expo Router: rotas, layout, bootstrap
 ├── domain/
 │   ├── entities/         # AnoLetivo, Materia, Periodo, Avaliacao, Nota, Prospecto
 │   ├── formula/          # FormulaSpec, MotorDeCalculo, GoalSolver, Escala
@@ -95,8 +98,15 @@ src/
 └── presentation/
     ├── features/         # anoLetivo/ materias/ notas/ simulador/ prospecto/ ajustes/
     │                      #   cada feature: componentes + slice Redux
-    └── shared/            # componentes, formatters, theme
+    ├── store/            # store Redux e slices
+    └── shared/            # o que atravessa features
+        ├── components/
+        ├── hooks/
+        └── theme.ts
 ```
+
+Hook usado por mais de uma feature (ou por nenhuma em especial) mora em
+`shared/hooks/`; hook que só existe para uma feature mora junto dela.
 
 ## 5. Modelo de domínio
 

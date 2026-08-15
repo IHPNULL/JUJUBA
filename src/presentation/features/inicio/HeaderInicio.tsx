@@ -2,7 +2,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "rea
 import { cores } from "../../shared/theme";
 import { TERMOS } from "../../store/inicioSlice";
 
-const iconeJujuba = require("../../../../jujubaIcon.jpeg");
+const iconeJujuba = require("../../../../assets/jujuba-icon.jpeg");
 
 interface HeaderInicioProps {
   termoSelecionado: string;

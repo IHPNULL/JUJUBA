@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="jujubaIcon.jpeg" alt="Jujuba" width="120" height="120" style="border-radius: 60px;" />
+  <img src="assets/jujuba-icon.jpeg" alt="Jujuba" width="120" height="120" style="border-radius: 60px;" />
 </p>
 
 <h1 align="center">Jujuba</h1>
@@ -115,6 +115,7 @@ login interativo.
 .
 ├── app/             app Expo Router (React Native + TypeScript)
 ├── src/             domain/data/presentation (ver ARQUITETURA.md)
+├── assets/          ícones e imagens do app; brand/ guarda a arte-fonte
 ├── docs/            arquitetura, ADRs e specs de design
 ├── specs/           FormulaSpec: schema, exemplos e testes-golden
 └── scripts/         automação de repositório e build

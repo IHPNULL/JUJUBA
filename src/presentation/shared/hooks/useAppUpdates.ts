@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import * as Updates from 'expo-updates';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setStatus, setError } from '../store/updatesSlice';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setStatus, setError } from '../../store/updatesSlice';
 
 const THROTTLE_MS = 60 * 60 * 1000; // 1 hora
 
