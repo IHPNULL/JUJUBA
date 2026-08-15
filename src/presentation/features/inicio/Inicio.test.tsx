@@ -136,6 +136,81 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
   });
 
   /**
+   * "Simular" limpa antes de calcular: cada toque parte das notas digitadas,
+   * nunca do resultado do toque anterior. Tocar duas vezes seguidas tem que
+   * dar exatamente o mesmo resultado que tocar uma.
+   */
+  it("simular de novo parte das notas digitadas, sem acumular", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await fireEvent.press(tela.getByText("Simular mínimo p/ 7,0"));
+
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[0].props.value).toBe("5,0"); // AT digitado
+    expect(campos[1].props.value).toBe("7,5"); // Objetiva
+    expect(campos[2].props.value).toBe("7,5"); // SAEP
+    expect(campos[3].props.value).toBe("0,8"); // Tarefa
+  });
+
+  /**
+   * Fecha o ciclo da limpeza: depois que uma meta inalcançável esvazia os
+   * campos simulados, baixar a meta não os traz de volta sozinho (a frente
+   * deixou de ter campo simulado) — mas "Simular" precisa reconstruir tudo.
+   */
+  it("volta a preencher ao simular depois de uma limpeza por meta inalcançável", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    for (const metaEsperada of ["7,5", "8,0", "8,5", "9,0"]) {
+      await fireEvent.press(tela.getByText("+"));
+      await waitFor(() => expect(tela.getByText(`Mínimo p/ ${metaEsperada}`)).toBeTruthy());
+    }
+    expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe(""); // limpou
+
+    for (const metaEsperada of ["8,5", "8,0", "7,5", "7,0"]) {
+      await fireEvent.press(tela.getByText("−"));
+      await waitFor(() => expect(tela.getByText(`Mínimo p/ ${metaEsperada}`)).toBeTruthy());
+    }
+    // A frente ficou sem campo simulado, então baixar a meta não repreenche.
+    expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("");
+
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[2].props.value).toBe("7,5"); // SAEP
+    expect(campos[3].props.value).toBe("0,8"); // Tarefa
+  });
+
+  /**
    * Digitar numa nota já responde "e se eu tirar isto?" — os campos que a
    * simulação preencheu na mesma frente precisam acompanhar sem exigir um
    * toque no "Mínimo p/". Com AT = 8,0, `have` = 16/4 = 4,0 e o déficit para

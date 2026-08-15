@@ -82,6 +82,16 @@ export default function Inicio() {
     });
   }
 
+  /**
+   * Toda simulação começa do zero: o que a simulação anterior escreveu é
+   * apagado ANTES de recalcular. Assim nenhum número de um cenário vencido
+   * sobrevive na tela quando o solver não tem o que escrever — meta que virou
+   * inalcançável, principalmente. O usuário não precisa passar no "Limpar"
+   * antes de simular de novo.
+   *
+   * As notas digitadas por ele nunca entram nessa limpeza: `simulados` diz
+   * exatamente quais campos foram preenchidos pela máquina.
+   */
   function simularFrente(
     materia: Materia,
     frenteId: string,
@@ -89,25 +99,10 @@ export default function Inicio() {
     digitadoAgora?: CampoDigitado
   ) {
     const entradas = entradasDoSolver(materia, frenteId, termoSelecionado, simulados, digitadoAgora);
-    const resultado = resolverMinimosComponentes(spec, entradas, new Decimal(metaAlvo));
+    apagarSimuladosDaFrente(materia, frenteId, digitadoAgora?.componente);
 
-    if (resultado.tipo !== "valores" && resultado.tipo !== "jaAlcancado") {
-      // Meta inalcançável (ou nada a preencher): manter na tela os números de
-      // uma simulação anterior seria mostrar um plano que não entrega a meta
-      // atual. Limpa o que a simulação tinha posto; o que o usuário digitou
-      // fica (`entradasDoSolver` já o distingue).
-      const temSimulado = frenteTemSimulado(
-        materia,
-        frenteId,
-        termoSelecionado,
-        simulados,
-        digitadoAgora?.componente
-      );
-      if (resultado.tipo === "impossivel" && temSimulado) {
-        apagarSimuladosDaFrente(materia, frenteId, digitadoAgora?.componente);
-      }
-      return;
-    }
+    const resultado = resolverMinimosComponentes(spec, entradas, new Decimal(metaAlvo));
+    if (resultado.tipo !== "valores" && resultado.tipo !== "jaAlcancado") return;
 
     Object.entries(resultado.valores).forEach(([componente, valor]) => {
       // Nunca escrever por cima do campo em que o usuário está digitando.
