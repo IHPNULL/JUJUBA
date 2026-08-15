@@ -1,7 +1,15 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
 import { cores, CorMateria } from "../../shared/theme";
@@ -43,73 +51,80 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
 
   return (
     <Modal visible={visivel} transparent animationType="slide" onRequestClose={fechar}>
-      <TouchableOpacity style={estilos.fundo} activeOpacity={1} onPress={fechar} />
-      <View style={[estilos.folha, { paddingBottom: 20 + insets.bottom }]}>
-        <View style={estilos.puxador} />
-        <View style={estilos.cabecalho}>
-          <Text style={estilos.titulo}>Nova matéria</Text>
-          <TouchableOpacity onPress={fechar} style={estilos.botaoFechar}>
-            <Text style={estilos.textoBotaoFechar}>×</Text>
+      {/* A folha fica colada na base da tela, exatamente onde o teclado sobe.
+          O `KeyboardAvoidingView` empurra a folha para cima pela altura do
+          teclado — e, quando a própria janela já redimensiona (o
+          `adjustResize` do Android), ele mede folga zero e não empurra nada,
+          então não há empurrão em dobro. */}
+      <KeyboardAvoidingView style={estilos.envolucro} behavior="padding">
+        <TouchableOpacity style={estilos.fundo} activeOpacity={1} onPress={fechar} />
+        <View style={[estilos.folha, { paddingBottom: 20 + insets.bottom }]}>
+          <View style={estilos.puxador} />
+          <View style={estilos.cabecalho}>
+            <Text style={estilos.titulo}>Nova matéria</Text>
+            <TouchableOpacity onPress={fechar} style={estilos.botaoFechar}>
+              <Text style={estilos.textoBotaoFechar}>×</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={estilos.rotulo}>Nome da matéria</Text>
+          <Controller
+            control={control}
+            name="nome"
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                value={value}
+                onChangeText={onChange}
+                placeholder="Ex.: Biologia"
+                style={estilos.entrada}
+              />
+            )}
+          />
+          {errors.nome && <Text style={estilos.erro}>{errors.nome.message}</Text>}
+
+          <Text style={estilos.rotulo}>Frentes</Text>
+          <View style={estilos.linhaChips}>
+            {([1, 2] as const).map((quantidade) => {
+              const selecionado = quantidade === quantidadeFrentes;
+              return (
+                <TouchableOpacity
+                  key={quantidade}
+                  onPress={() => setQuantidadeFrentes(quantidade)}
+                  style={[
+                    estilos.chip,
+                    { backgroundColor: selecionado ? cores.rosa : cores.cartaoFundo },
+                  ]}
+                >
+                  <Text style={[estilos.textoChip, { color: selecionado ? cores.branco : cores.textoSuave }]}>
+                    {quantidade === 1 ? "Frente única" : "Duas frentes"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={estilos.rotulo}>Cor</Text>
+          <View style={estilos.linhaCores}>
+            {CORES_DISPONIVEIS.map((cor) => (
+              <TouchableOpacity
+                key={cor}
+                onPress={() => setCorSelecionada(cor)}
+                style={[
+                  estilos.bolinhaCor,
+                  {
+                    backgroundColor: cores[corParaTom(cor)],
+                    borderColor: cor === corSelecionada ? cores.texto : "transparent",
+                  },
+                ]}
+              />
+            ))}
+          </View>
+
+          <TouchableOpacity onPress={handleSubmit(enviar)} style={estilos.botaoAdicionar}>
+            <Text style={estilos.textoBotaoAdicionar}>Adicionar matéria</Text>
           </TouchableOpacity>
         </View>
-
-        <Text style={estilos.rotulo}>Nome da matéria</Text>
-        <Controller
-          control={control}
-          name="nome"
-          render={({ field: { value, onChange } }) => (
-            <TextInput
-              value={value}
-              onChangeText={onChange}
-              placeholder="Ex.: Biologia"
-              style={estilos.entrada}
-            />
-          )}
-        />
-        {errors.nome && <Text style={estilos.erro}>{errors.nome.message}</Text>}
-
-        <Text style={estilos.rotulo}>Frentes</Text>
-        <View style={estilos.linhaChips}>
-          {([1, 2] as const).map((quantidade) => {
-            const selecionado = quantidade === quantidadeFrentes;
-            return (
-              <TouchableOpacity
-                key={quantidade}
-                onPress={() => setQuantidadeFrentes(quantidade)}
-                style={[
-                  estilos.chip,
-                  { backgroundColor: selecionado ? cores.rosa : cores.cartaoFundo },
-                ]}
-              >
-                <Text style={[estilos.textoChip, { color: selecionado ? cores.branco : cores.textoSuave }]}>
-                  {quantidade === 1 ? "Frente única" : "Duas frentes"}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <Text style={estilos.rotulo}>Cor</Text>
-        <View style={estilos.linhaCores}>
-          {CORES_DISPONIVEIS.map((cor) => (
-            <TouchableOpacity
-              key={cor}
-              onPress={() => setCorSelecionada(cor)}
-              style={[
-                estilos.bolinhaCor,
-                {
-                  backgroundColor: cores[corParaTom(cor)],
-                  borderColor: cor === corSelecionada ? cores.texto : "transparent",
-                },
-              ]}
-            />
-          ))}
-        </View>
-
-        <TouchableOpacity onPress={handleSubmit(enviar)} style={estilos.botaoAdicionar}>
-          <Text style={estilos.textoBotaoAdicionar}>Adicionar matéria</Text>
-        </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -119,6 +134,7 @@ function corParaTom(cor: CorMateria): "rosa" | "dourado" | "roxo" {
 }
 
 const estilos = StyleSheet.create({
+  envolucro: { flex: 1 },
   fundo: { flex: 1, backgroundColor: "rgba(58,36,24,0.45)" },
   folha: { backgroundColor: cores.branco, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 20, paddingTop: 14 },
   puxador: { width: 36, height: 4, backgroundColor: cores.bordaCartao, borderRadius: 99, alignSelf: "center", marginBottom: 14 },

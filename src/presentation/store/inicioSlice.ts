@@ -45,6 +45,12 @@ export function chaveSimulado(materiaId: string, termo: string, frenteId: string
   return `${materiaId}|${termo}|${frenteId}|${componente}`;
 }
 
+/** Meta válida: sempre dentro da escala. Exportada porque a tela precisa do
+ *  MESMO valor que o reducer vai guardar para já resimular com ele. */
+export function limitarMeta(meta: number): number {
+  return Math.max(0, Math.min(10, meta));
+}
+
 const inicioSlice = createSlice({
   name: "inicio",
   initialState,
@@ -53,7 +59,7 @@ const inicioSlice = createSlice({
       state.termoSelecionado = action.payload;
     },
     definirMeta(state, action: PayloadAction<number>) {
-      state.meta = Math.max(0, Math.min(10, action.payload));
+      state.meta = limitarMeta(action.payload);
     },
     adicionarMateria: {
       reducer(

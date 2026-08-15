@@ -1,11 +1,13 @@
 import Decimal from "decimal.js";
+import { useRef } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { avaliarPeriodo, mediaEntreFrentes } from "../../../domain/formula/motorDeCalculo";
 import { resolverMinimosComponentes } from "../../../domain/formula/componentGoalSolver";
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
-import { chaveSimulado, Materia, NotasFrente } from "../../store/inicioSlice";
+import { Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores, paletaMateria } from "../../shared/theme";
+import { COMPONENTES, entradasDoSolver, paraDecimal } from "./simulacao";
 
 interface CartaoMateriaProps {
   spec: FormulaSpec;
@@ -16,6 +18,7 @@ interface CartaoMateriaProps {
   onDefinirNota: (frenteId: string, componente: keyof NotasFrente, valor: string) => void;
   onSimularMateria: () => void;
   onRemover: () => void;
+  onFocarCampo?: (campo: TextInput | null) => void;
 }
 
 const ROTULOS_COMPONENTE: Record<keyof NotasFrente, string> = {
@@ -25,11 +28,34 @@ const ROTULOS_COMPONENTE: Record<keyof NotasFrente, string> = {
   tarefa: "Tarefa",
 };
 
-function paraDecimal(valor: string): Decimal {
-  const limpo = valor.trim().replace(",", ".");
-  if (limpo === "") return new Decimal(0);
-  const numero = Number(limpo);
-  return Number.isFinite(numero) ? new Decimal(numero) : new Decimal(0);
+interface CampoNotaProps {
+  rotulo: string;
+  valor: string;
+  onMudar: (valor: string) => void;
+  onFocar?: (campo: TextInput | null) => void;
+}
+
+/**
+ * Componente próprio (e não um `TextInput` solto dentro do `.map`) porque
+ * cada campo precisa da própria `ref` para ser medido quando o teclado abre —
+ * e `useRef` não pode ser chamado dentro de um laço de renderização.
+ */
+function CampoNota({ rotulo, valor, onMudar, onFocar }: CampoNotaProps) {
+  const referencia = useRef<TextInput>(null);
+  return (
+    <View style={estilos.campo}>
+      <Text style={estilos.rotuloCampo}>{rotulo}</Text>
+      <TextInput
+        ref={referencia}
+        value={valor}
+        onChangeText={onMudar}
+        onFocus={() => onFocar?.(referencia.current)}
+        placeholder="0,0"
+        inputMode="decimal"
+        style={estilos.entrada}
+      />
+    </View>
+  );
 }
 
 export function CartaoMateria({
@@ -41,6 +67,7 @@ export function CartaoMateria({
   onDefinirNota,
   onSimularMateria,
   onRemover,
+  onFocarCampo,
 }: CartaoMateriaProps) {
   const cor = paletaMateria[materia.cor];
 
@@ -61,25 +88,13 @@ export function CartaoMateria({
   const alcancouMeta = mediaMateriaArredondada.gte(new Decimal(meta));
   const metaTexto = arredondarEFormatar(new Decimal(meta), spec.escala).texto;
 
-  const resultadosMinimos = materia.frentes.map((frente) => {
-    const notas = frente.notas[termoSelecionado];
-
-    function valorOuVazio(componente: keyof NotasFrente): Decimal | null {
-      const valor = notas?.[componente];
-      if (!valor) return null;
-      const chave = chaveSimulado(materia.id, termoSelecionado, frente.id, componente);
-      if (simulados[chave]) return null;
-      return paraDecimal(valor);
-    }
-
-    const preenchidos: Record<string, Decimal | null> = {
-      at: valorOuVazio("at"),
-      ao: valorOuVazio("ao"),
-      saep: valorOuVazio("saep"),
-      tarefa: valorOuVazio("tarefa"),
-    };
-    return resolverMinimosComponentes(spec, preenchidos, new Decimal(meta));
-  });
+  const resultadosMinimos = materia.frentes.map((frente) =>
+    resolverMinimosComponentes(
+      spec,
+      entradasDoSolver(materia, frente.id, termoSelecionado, simulados),
+      new Decimal(meta)
+    )
+  );
   const algumImpossivel = resultadosMinimos.some((resultado) => resultado.tipo === "impossivel");
   const algumComVazios = resultadosMinimos.some((resultado) => resultado.tipo !== "semVazios");
 
@@ -134,17 +149,14 @@ export function CartaoMateria({
               </View>
             )}
             <View style={estilos.linhaCampos}>
-              {(Object.keys(ROTULOS_COMPONENTE) as (keyof NotasFrente)[]).map((componente) => (
-                <View key={componente} style={estilos.campo}>
-                  <Text style={estilos.rotuloCampo}>{ROTULOS_COMPONENTE[componente]}</Text>
-                  <TextInput
-                    value={notas?.[componente] ?? ""}
-                    onChangeText={(valor) => onDefinirNota(frente.id, componente, valor)}
-                    placeholder="0,0"
-                    inputMode="decimal"
-                    style={estilos.entrada}
-                  />
-                </View>
+              {COMPONENTES.map((componente) => (
+                <CampoNota
+                  key={componente}
+                  rotulo={ROTULOS_COMPONENTE[componente]}
+                  valor={notas?.[componente] ?? ""}
+                  onMudar={(valor) => onDefinirNota(frente.id, componente, valor)}
+                  onFocar={onFocarCampo}
+                />
               ))}
             </View>
           </View>

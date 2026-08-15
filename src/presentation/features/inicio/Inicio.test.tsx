@@ -134,4 +134,227 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     expect(campos[2].props.value).toBe("5,0"); // SAEP
     expect(campos[3].props.value).toBe("0,5"); // Tarefa
   });
+
+  /**
+   * Digitar numa nota já responde "e se eu tirar isto?" — os campos que a
+   * simulação preencheu na mesma frente precisam acompanhar sem exigir um
+   * toque no "Mínimo p/". Com AT = 8,0, `have` = 16/4 = 4,0 e o déficit para
+   * a meta 7,0 é 3,0 sobre uma capacidade de 6,0 → x = 0,5 → 5,0 / 5,0 / 0,5.
+   */
+  it("recalcula os campos simulados ao digitar outra nota da mesma frente", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    // Corrige o AT — sem tocar em "Mínimo p/ 7,0" desta vez.
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "8,0");
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("5,0"));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[0].props.value).toBe("8,0"); // AT: exatamente o que foi digitado
+    expect(campos[2].props.value).toBe("5,0"); // SAEP
+    expect(campos[3].props.value).toBe("0,5"); // Tarefa
+  });
+
+  /**
+   * Digitar por cima de um campo que a própria simulação tinha preenchido: o
+   * valor digitado passa a valer como do usuário (não pode ser sobrescrito) e
+   * os OUTROS simulados recalculam em torno dele.
+   *
+   * Com AT = 5,0 e SAEP = 9,0 digitados, sobram Objetiva e Tarefa. Como
+   * `avaliarPeriodo` arredonda em cada sondagem (escala de 1 casa):
+   * `have` = (10+0+9)/4 = 4,75 → 4,8; com Objetiva no máximo (10+10+9)/4 =
+   * 7,25 → 7,3, logo coef 0,25; com Tarefa no máximo 5,75 → 5,8, coef 1,0.
+   * Capacidade = 3,5 e déficit = 2,2 → x = 0,62857… → Objetiva 6,3 (teto de
+   * uma casa) e Tarefa 0,7.
+   */
+  it("trata como digitado o campo que o usuário sobrescreve e recalcula os outros simulados", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[2].props.value).toBe("7,5"));
+
+    // SAEP tinha sido preenchido pela simulação (7,5); o usuário digita 9,0.
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[2], "9,0");
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("6,3"));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[0].props.value).toBe("5,0"); // AT: digitado antes
+    expect(campos[2].props.value).toBe("9,0"); // SAEP: o que o usuário digitou, intocado
+    expect(campos[3].props.value).toBe("0,7"); // Tarefa
+  });
+
+  it("não simula nada ao digitar numa frente que não tem campo simulado", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "História");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("História")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[0].props.value).toBe("5,0"));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[1].props.value).toBe(""); // Objetiva
+    expect(campos[2].props.value).toBe(""); // SAEP
+    expect(campos[3].props.value).toBe(""); // Tarefa
+  });
+
+  /**
+   * Apagar para redigitar passa por um estado vazio: recalcular ali encheria a
+   * linha com base num valor que o usuário ainda está escrevendo. A linha
+   * mantém os números da simulação anterior até vir um valor de verdade.
+   */
+  it("não recalcula enquanto o campo digitado está vazio", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], ""); // apaga o AT
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[0].props.value).toBe(""));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[1].props.value).toBe("7,5"); // Objetiva: sem mexer
+    expect(campos[2].props.value).toBe("7,5"); // SAEP
+    expect(campos[3].props.value).toBe("0,8"); // Tarefa
+  });
+
+  /**
+   * Os campos que a simulação preencheu são a resposta a "quanto falta para
+   * bater a meta" — mudar a meta sem recalculá-los deixa na tela um plano
+   * que responde à meta antiga.
+   *
+   * Contas (spec real, escala de 1 casa, arredondando o mínimo PARA CIMA):
+   * com AT = 5,0 digitado, `have` = (5×2)/4 = 2,5 e a capacidade dos vazios
+   * é 0,25×10 (Obj) + 0,25×10 (SAEP) + 1×1 (Tarefa) = 6,0.
+   *   meta 7,0 → déficit 4,5 → x = 0,75 → 7,5 / 7,5 / 0,8
+   *   meta 7,5 → déficit 5,0 → x = 0,8333… → 8,4 / 8,4 / 0,9
+   */
+  it("recalcula os campos simulados quando a meta muda", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    // "+" do stepper de meta: 7,0 → 7,5. (O botão "+ Adicionar matéria" não
+    // colide: `getByText` casa o texto inteiro, não um prefixo.)
+    await fireEvent.press(tela.getByText("+"));
+
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("8,4"));
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[0].props.value).toBe("5,0"); // AT digitado: intocado
+    expect(campos[2].props.value).toBe("8,4"); // SAEP
+    expect(campos[3].props.value).toBe("0,9"); // Tarefa
+    expect(tela.getByText("Mínimo p/ 7,5")).toBeTruthy();
+  });
+
+  it("não preenche campos de matéria que nunca foi simulada ao mudar a meta", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "História");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("História")).toBeTruthy());
+
+    await fireEvent.press(tela.getByText("+"));
+
+    await waitFor(() => expect(tela.getByText("Mínimo p/ 7,5")).toBeTruthy());
+    tela.getAllByPlaceholderText("0,0").forEach((campo) => {
+      expect(campo.props.value).toBe("");
+    });
+  });
+
+  /**
+   * Subir a meta até um valor inalcançável não pode deixar na tela os números
+   * da simulação anterior: eles diriam "faça isto e você bate a meta" para uma
+   * meta que já não dá para bater. Com AT = 5,0 a capacidade dos vazios é 6,0,
+   * então a meta 9,0 (déficit 6,5) é impossível.
+   */
+  it("limpa os campos simulados quando a nova meta se torna inalcançável", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0"); // AT
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    // 7,0 → 9,0, de meio em meio ponto.
+    for (const metaEsperada of ["7,5", "8,0", "8,5", "9,0"]) {
+      await fireEvent.press(tela.getByText("+"));
+      await waitFor(() => expect(tela.getByText(`Mínimo p/ ${metaEsperada}`)).toBeTruthy());
+    }
+
+    const campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos[0].props.value).toBe("5,0"); // AT digitado: continua lá
+    expect(campos[1].props.value).toBe(""); // Objetiva
+    expect(campos[2].props.value).toBe(""); // SAEP
+    expect(campos[3].props.value).toBe(""); // Tarefa
+    expect(tela.getByText("Nem com nota máxima nas que faltam dá 9,0.")).toBeTruthy();
+  });
 });
