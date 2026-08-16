@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, Decimal.js, jsep (motor já existente), Drizzle ORM, Redux Toolkit, React Native, `react-native-svg` (nova dependência), `react-hook-form` + `zod`.
 
-**Spec:** [docs/superpowers/specs/2026-08-14-formula-real-e-ui.md](../specs/2026-08-14-formula-real-e-ui.md)
+**Spec:** [docs/planejamento-ia/specs/2026-08-14-formula-real-e-ui.md](../specs/2026-08-14-formula-real-e-ui.md)
 
 ## Global Constraints
 
@@ -585,7 +585,7 @@ git commit -m "feat: add component-level goal solver (resolverMinimosComponentes
  * 1 ou 2 conjuntos de notas independentes dentro de uma matéria (ex.:
  * Física com "Frente 1"/"Frente 2"). Matérias de frente única têm
  * exatamente uma `Frente` (nome "Única"), criada junto com a matéria — ver
- * docs/superpowers/specs/2026-08-14-formula-real-e-ui.md.
+ * docs/planejamento-ia/specs/2026-08-14-formula-real-e-ui.md.
  */
 export interface Frente {
   id: string;
@@ -683,7 +683,7 @@ import type { Frente } from "../entities/frente";
 /**
  * CRUD mínimo — só o necessário para cadastrar 1-2 frentes por matéria e
  * listá-las. Não é um repositório completo (sem `atualizar`/`remover`
- * ainda) — ver docs/superpowers/specs/2026-08-14-formula-real-e-ui.md.
+ * ainda) — ver docs/planejamento-ia/specs/2026-08-14-formula-real-e-ui.md.
  */
 export interface FrenteRepository {
   criar(frente: Frente): Promise<Frente>;

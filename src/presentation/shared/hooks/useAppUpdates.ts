@@ -10,7 +10,7 @@ const THROTTLE_MS = 60 * 60 * 1000; // 1 hora
  * Gerencia o ciclo de vida de atualizações OTA (expo-updates): checa no cold
  * launch e em toda transição do AppState para "active", com throttle de 1h
  * entre checagens. Qualquer falha de checagem/download volta silenciosamente
- * para "idle" (ver docs/superpowers/specs/2026-08-13-ota-updates-design.md,
+ * para "idle" (ver docs/planejamento-ia/specs/2026-08-13-ota-updates-design.md,
  * §Tratamento de erro) — não há UI de erro.
  *
  * Importante: este hook nunca chama `Updates.reloadAsync()` sozinho. Ele só

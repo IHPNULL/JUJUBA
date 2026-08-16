@@ -32,5 +32,5 @@ Cada `ResultadoCalculado` grava o `formulaSpecId` e a `versao` que o produziram.
 
 A fórmula real chegou e está implementada como `specs/formula-real-trimestral.json`,
 substituindo a spec provisória sem alterar o motor. Ver
-`docs/superpowers/specs/2026-08-14-formula-real-e-ui.md` para o detalhamento da
+`docs/planejamento-ia/specs/2026-08-14-formula-real-e-ui.md` para o detalhamento da
 fórmula, do conceito de "frentes" e da tela Início construídos em cima dela.
