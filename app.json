@@ -3,7 +3,7 @@
     "name": "Jujuba",
     "slug": "jujuba",
     "scheme": "jujuba",
-    "version": "1.0.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,11 @@
       "policy": "appVersion"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.jujuba",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -43,6 +47,7 @@
       "eas": {
         "projectId": "39dae08b-1ea5-4f83-bd69-56b6d2dde61c"
       }
-    }
+    },
+    "owner": "ihpnull"
   }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Keyboard, TextInput } from "react-native";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
@@ -19,11 +19,18 @@ const MARGEM_PADRAO = 24;
  * rolar a lista exatamente pelo tanto que ele invade o teclado. Medir depois
  * do `keyboardDidShow`, e não no `onFocus`, é o que garante que a medição já
  * reflita o novo tamanho da janela.
+ *
+ * Isso só funciona se a lista TIVER pra onde rolar: perto do fim dela,
+ * `scrollToOffset` trava no fim do conteúdo e o campo continua tampado mesmo
+ * com a conta certa. `alturaTeclado` existe pra isso — o chamador soma no
+ * `paddingBottom` do `contentContainerStyle`, abrindo folga extra do tamanho
+ * do teclado só enquanto ele estiver aberto.
  */
 export function useCampoVisivelComTeclado<T>(margem: number = MARGEM_PADRAO) {
   const referenciaDaLista = useRef<FlatList<T>>(null);
   const deslocamentoAtual = useRef(0);
   const campoFocado = useRef<TextInput | null>(null);
+  const [alturaTeclado, setAlturaTeclado] = useState(0);
 
   const rolarAteOCampo = useCallback(
     (topoDoTeclado: number) => {
@@ -42,11 +49,13 @@ export function useCampoVisivelComTeclado<T>(margem: number = MARGEM_PADRAO) {
   );
 
   useEffect(() => {
-    const aoAbrir = Keyboard.addListener("keyboardDidShow", (evento) =>
-      rolarAteOCampo(evento.endCoordinates.screenY)
-    );
+    const aoAbrir = Keyboard.addListener("keyboardDidShow", (evento) => {
+      setAlturaTeclado(evento.endCoordinates.height);
+      rolarAteOCampo(evento.endCoordinates.screenY);
+    });
     const aoFechar = Keyboard.addListener("keyboardDidHide", () => {
       campoFocado.current = null;
+      setAlturaTeclado(0);
     });
     return () => {
       aoAbrir.remove();
@@ -71,5 +80,5 @@ export function useCampoVisivelComTeclado<T>(margem: number = MARGEM_PADRAO) {
     deslocamentoAtual.current = evento.nativeEvent.contentOffset.y;
   }, []);
 
-  return { referenciaDaLista, aoFocarCampo, aoRolar };
+  return { referenciaDaLista, aoFocarCampo, aoRolar, alturaTeclado };
 }

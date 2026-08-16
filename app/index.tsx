@@ -53,7 +53,7 @@ export default function Inicio() {
   const dispatch = useAppDispatch();
   const { termoSelecionado, meta, materias, simulados } = useAppSelector((state) => state.inicio);
   const [sheetAberto, setSheetAberto] = useState(false);
-  const { referenciaDaLista, aoFocarCampo, aoRolar } = useCampoVisivelComTeclado<Materia>();
+  const { referenciaDaLista, aoFocarCampo, aoRolar, alturaTeclado } = useCampoVisivelComTeclado<Materia>();
 
   useEffect(() => {
     dispatch(especificarFormulaAtiva(spec));
@@ -214,7 +214,7 @@ export default function Inicio() {
             <Text style={estilos.textoBotaoAdicionar}>+ Adicionar matéria</Text>
           </TouchableOpacity>
         }
-        contentContainerStyle={estilos.conteudo}
+        contentContainerStyle={[estilos.conteudo, { paddingBottom: 32 + alturaTeclado }]}
       />
 
       <AdicionarMateriaSheet
@@ -236,6 +236,7 @@ const estilos = StyleSheet.create({
   itemLista: { marginBottom: 0, marginHorizontal: 20 },
   botaoAdicionar: {
     marginTop: 14,
+    marginBottom: 42,
     marginHorizontal: 20,
     borderWidth: 1.5,
     borderColor: cores.rosaClaro,

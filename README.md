@@ -8,6 +8,12 @@
 Aplicativo mobile para o aluno cadastrar as matérias do ano letivo, lançar notas por
 período, ver a média calculada na hora e descobrir quanto falta tirar para passar.
 
+Feito sob medida para o **formato de notas do Colégio Ser**: componentes AT, Objetiva,
+SAEP e Tarefa por trimestre, com a fórmula oficial de média já embutida (ver
+[Estado atual](#estado-atual)). A fórmula é dado, não código (
+[ADR 0003](docs/adr/0003-formula-como-dado.md)), então adaptar para outra escola ou
+regra é possível — mas hoje o app assume o Ser.
+
 **Offline-first.** Nenhum dado sai do aparelho: sem conta, sem servidor, sem rede.
 
 ## Estado atual
@@ -20,9 +26,9 @@ flutuante nativo), simulador "quanto preciso tirar para bater a meta" e anel de
 progresso com a média geral.
 
 A fórmula de cálculo é tratada como *dado*, não como código — ver
-[ADR 0003](docs/adr/0003-formula-como-dado.md). A fórmula real chegou e está ativa
-(`specs/formula-real-trimestral.json`): `(AT×2 + Objetiva + SAEP) ÷ 4 + Tarefa`, com
-teto de 10.
+[ADR 0003](docs/adr/0003-formula-como-dado.md). A fórmula real do **Colégio Ser** está
+ativa (`specs/formula-real-trimestral.json`): `(AT×2 + Objetiva + SAEP) ÷ 4 + Tarefa`,
+com teto de 10.
 
 **Ainda não implementado:** persistência real (o schema Drizzle existe, a tela usa
 Redux em memória por enquanto), onboarding de ano letivo, importação de prospecto,
@@ -93,6 +99,17 @@ npm run dev:build     # compila o development build na nuvem (uma vez)
 npm run dev:install   # instala no aparelho plugado
 npm run dev           # sobe o Metro e liga o celular pelo cabo
 ```
+
+## Versão web (GitHub Pages)
+
+A versão web roda em **[ihpnull.github.io/JUJUBA](https://ihpnull.github.io/JUJUBA/)**.
+Todo push em `main` reexporta o app (`npm run build:web`, via
+[`expo export --platform web`](https://docs.expo.dev/router/reference/static-rendering/))
+e publica em Pages pelo workflow
+[`.github/workflows/deploy-web.yml`](.github/workflows/deploy-web.yml).
+
+Pra funcionar, o repositório precisa ter **Settings → Pages → Build and deployment →
+Source: GitHub Actions** habilitado (passo manual único, feito uma vez).
 
 ## Atualizações OTA (EAS Update)
 
