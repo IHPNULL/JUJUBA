@@ -432,4 +432,58 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     expect(campos[3].props.value).toBe(""); // Tarefa
     expect(tela.getByText("Nem com nota máxima nas que faltam dá 9,0.")).toBeTruthy();
   });
+
+  /**
+   * A cor da matéria vem de um preset fixo (hex direto, sem indireção por
+   * `paletaMateria`) — escolher um preset tem que refletir exatamente no
+   * marcador do cartão.
+   */
+  it("usa a cor do preset escolhido no marcador da matéria", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Geografia");
+    await fireEvent.press(tela.getByTestId("cor-preset-#3E7CB1")); // Azul
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+
+    await waitFor(() => expect(tela.queryByText("Geografia")).toBeTruthy());
+    expect(tela.getByTestId("marcador-cor-Geografia").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ backgroundColor: "#3E7CB1" })])
+    );
+  });
+
+  /**
+   * Cor personalizada aceita qualquer hex, mas só depois de validado — um
+   * hex incompleto ou mal formado não pode virar uma matéria com cor
+   * quebrada. Corrigir o texto pro formato certo libera o envio.
+   */
+  it("bloqueia o envio com hex personalizado inválido e libera quando fica válido", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Artes");
+    await fireEvent.press(tela.getByTestId("cor-personalizada-gatilho"));
+
+    await fireEvent.changeText(tela.getByTestId("cor-personalizada-campo"), "xyz");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    expect(tela.queryByText("Artes")).toBeNull();
+
+    await fireEvent.changeText(tela.getByTestId("cor-personalizada-campo"), "#123ABC");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+
+    await waitFor(() => expect(tela.queryByText("Artes")).toBeTruthy());
+    expect(tela.getByTestId("marcador-cor-Artes").props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ backgroundColor: "#123ABC" })])
+    );
+  });
 });

@@ -21,10 +21,19 @@ export const cores = {
   erroFundo: "#FBE7E5",
 } as const;
 
-export const paletaMateria = {
-  pink: { fundo: cores.rosaClaro, cor: cores.rosa },
-  gold: { fundo: cores.douradoClaro, cor: cores.dourado },
-  plum: { fundo: cores.roxoClaro, cor: cores.roxo },
-} as const;
+/** Cor da matéria: hex direto (`#RRGGBB`), de um preset ou digitado à mão. */
+export type CorMateria = string;
 
-export type CorMateria = keyof typeof paletaMateria;
+/** Presets oferecidos no seletor de cor da matéria — não é a lista completa
+ *  de cores possíveis, só o ponto de partida; o formulário aceita qualquer
+ *  hex digitado à mão além destes. */
+export const CORES_MATERIA_PRESET: { nome: string; hex: CorMateria }[] = [
+  { nome: "Rosa", hex: "#E31C79" },
+  { nome: "Dourado", hex: "#C9974B" },
+  { nome: "Roxo", hex: "#8B5FBF" },
+  { nome: "Azul", hex: "#3E7CB1" },
+  { nome: "Verde", hex: "#2E9E5B" },
+  { nome: "Laranja", hex: "#E0793C" },
+  { nome: "Vermelho", hex: "#C64550" },
+  { nome: "Turquesa", hex: "#2FA6A6" },
+];

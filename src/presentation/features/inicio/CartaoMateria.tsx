@@ -6,7 +6,7 @@ import { resolverMinimosComponentes } from "../../../domain/formula/componentGoa
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
 import { Materia, NotasFrente } from "../../store/inicioSlice";
-import { cores, paletaMateria } from "../../shared/theme";
+import { cores } from "../../shared/theme";
 import { COMPONENTES, entradasDoSolver, paraDecimal } from "./simulacao";
 
 interface CartaoMateriaProps {
@@ -69,8 +69,6 @@ export function CartaoMateria({
   onRemover,
   onFocarCampo,
 }: CartaoMateriaProps) {
-  const cor = paletaMateria[materia.cor];
-
   const mediasFrentes = materia.frentes.map((frente) => {
     const notas = frente.notas[termoSelecionado];
     return avaliarPeriodo(spec, {
@@ -115,7 +113,10 @@ export function CartaoMateria({
     <View style={estilos.cartao}>
       <View style={estilos.cabecalho}>
         <View style={estilos.cabecalhoEsquerda}>
-          <View style={[estilos.marcador, { backgroundColor: cor.cor }]} />
+          <View
+            testID={`marcador-cor-${materia.nome}`}
+            style={[estilos.marcador, { backgroundColor: materia.cor }]}
+          />
           <Text style={estilos.nome}>{materia.nome}</Text>
           {materia.frentes.length > 1 && (
             <View style={estilos.selo2Frentes}>
