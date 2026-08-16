@@ -64,19 +64,20 @@ const inicioSlice = createSlice({
     adicionarMateria: {
       reducer(
         state,
-        action: PayloadAction<{ id: string; nome: string; cor: CorMateria; quantidadeFrentes: 1 | 2 }>
+        action: PayloadAction<{ id: string; nome: string; cor: CorMateria; quantidadeFrentes: 1 | 2 | 3 }>
       ) {
         const { id, nome, cor, quantidadeFrentes } = action.payload;
         const frentes: Frente[] =
-          quantidadeFrentes === 2
-            ? [
-                { id: `${id}-f1`, nome: "Frente 1", notas: {} },
-                { id: `${id}-f2`, nome: "Frente 2", notas: {} },
-              ]
-            : [{ id: `${id}-unica`, nome: "Única", notas: {} }];
+          quantidadeFrentes === 1
+            ? [{ id: `${id}-unica`, nome: "Única", notas: {} }]
+            : Array.from({ length: quantidadeFrentes }, (_, indice) => ({
+                id: `${id}-f${indice + 1}`,
+                nome: `Frente ${indice + 1}`,
+                notas: {},
+              }));
         state.materias.push({ id, nome, cor, frentes });
       },
-      prepare(nome: string, cor: CorMateria, quantidadeFrentes: 1 | 2) {
+      prepare(nome: string, cor: CorMateria, quantidadeFrentes: 1 | 2 | 3) {
         return { payload: { id: nanoid(), nome, cor, quantidadeFrentes } };
       },
     },

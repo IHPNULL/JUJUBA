@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ColorPicker, { HueSlider, Panel1 } from "reanimated-color-picker";
+import type { ColorFormatsObject } from "reanimated-color-picker";
 import { z } from "zod";
 import { cores, CORES_MATERIA_PRESET, CorMateria } from "../../shared/theme";
 
@@ -18,24 +20,23 @@ const esquemaNovaMateria = z.object({
   nome: z.string().trim().min(1, "Digite o nome da matéria"),
 });
 
-const REGEX_HEX = /^#[0-9A-Fa-f]{6}$/;
-
-function ehHexValido(valor: string): boolean {
-  return REGEX_HEX.test(valor);
-}
+const ROTULOS_QUANTIDADE_FRENTES: Record<1 | 2 | 3, string> = {
+  1: "Frente única",
+  2: "Duas frentes",
+  3: "Três frentes",
+};
 
 interface AdicionarMateriaSheetProps {
   visivel: boolean;
   onFechar: () => void;
-  onAdicionar: (nome: string, cor: CorMateria, quantidadeFrentes: 1 | 2) => void;
+  onAdicionar: (nome: string, cor: CorMateria, quantidadeFrentes: 1 | 2 | 3) => void;
 }
 
 export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: AdicionarMateriaSheetProps) {
   const insets = useSafeAreaInsets();
-  const [quantidadeFrentes, setQuantidadeFrentes] = useState<1 | 2>(1);
+  const [quantidadeFrentes, setQuantidadeFrentes] = useState<1 | 2 | 3>(1);
   const [corSelecionada, setCorSelecionada] = useState<CorMateria>(CORES_MATERIA_PRESET[0].hex);
   const [corPersonalizada, setCorPersonalizada] = useState(false);
-  const [textoCorPersonalizada, setTextoCorPersonalizada] = useState("");
   const {
     control,
     handleSubmit,
@@ -43,15 +44,11 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
     formState: { errors },
   } = useForm({ resolver: zodResolver(esquemaNovaMateria), defaultValues: { nome: "" } });
 
-  const hexPersonalizadoValido = ehHexValido(textoCorPersonalizada);
-  const corInvalidaParaEnviar = corPersonalizada && !hexPersonalizadoValido;
-
   function fechar() {
     reset();
     setQuantidadeFrentes(1);
     setCorSelecionada(CORES_MATERIA_PRESET[0].hex);
     setCorPersonalizada(false);
-    setTextoCorPersonalizada("");
     onFechar();
   }
 
@@ -60,18 +57,12 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
     setCorSelecionada(hex);
   }
 
-  function abrirCorPersonalizada() {
-    setCorPersonalizada(true);
-    if (hexPersonalizadoValido) setCorSelecionada(textoCorPersonalizada.toUpperCase());
-  }
-
-  function mudarHexPersonalizado(texto: string) {
-    setTextoCorPersonalizada(texto);
-    if (ehHexValido(texto)) setCorSelecionada(texto.toUpperCase());
+  /** Sem `OpacitySlider`, `color.hex` já sai em 6 dígitos (`#RRGGBB`). */
+  function aoEscolherCorPersonalizada(cor: ColorFormatsObject) {
+    setCorSelecionada(cor.hex.toUpperCase());
   }
 
   function enviar(dados: { nome: string }) {
-    if (corInvalidaParaEnviar) return;
     onAdicionar(dados.nome, corSelecionada, quantidadeFrentes);
     fechar();
   }
@@ -111,7 +102,7 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
 
           <Text style={estilos.rotulo}>Frentes</Text>
           <View style={estilos.linhaChips}>
-            {([1, 2] as const).map((quantidade) => {
+            {([1, 2, 3] as const).map((quantidade) => {
               const selecionado = quantidade === quantidadeFrentes;
               return (
                 <TouchableOpacity
@@ -123,7 +114,7 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
                   ]}
                 >
                   <Text style={[estilos.textoChip, { color: selecionado ? cores.branco : cores.textoSuave }]}>
-                    {quantidade === 1 ? "Frente única" : "Duas frentes"}
+                    {ROTULOS_QUANTIDADE_FRENTES[quantidade]}
                   </Text>
                 </TouchableOpacity>
               );
@@ -149,7 +140,7 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
             ))}
             <TouchableOpacity
               testID="cor-personalizada-gatilho"
-              onPress={abrirCorPersonalizada}
+              onPress={() => setCorPersonalizada(true)}
               accessibilityLabel="Cor personalizada"
               style={[
                 estilos.bolinhaCor,
@@ -162,29 +153,15 @@ export function AdicionarMateriaSheet({ visivel, onFechar, onAdicionar }: Adicio
           </View>
 
           {corPersonalizada && (
-            <View style={estilos.linhaCorPersonalizada}>
-              <View style={[estilos.previaCorPersonalizada, { backgroundColor: corSelecionada }]} />
-              <TextInput
-                testID="cor-personalizada-campo"
-                value={textoCorPersonalizada}
-                onChangeText={mudarHexPersonalizado}
-                placeholder="#RRGGBB"
-                autoCapitalize="characters"
-                autoCorrect={false}
-                maxLength={7}
-                style={[estilos.entrada, estilos.entradaCorPersonalizada]}
-              />
+            <View testID="cor-personalizada-picker" style={estilos.linhaCorPersonalizada}>
+              <ColorPicker value={corSelecionada} onCompleteJS={aoEscolherCorPersonalizada}>
+                <Panel1 style={estilos.painelCorPersonalizada} />
+                <HueSlider style={estilos.sliderCorPersonalizada} />
+              </ColorPicker>
             </View>
           )}
-          {corInvalidaParaEnviar && (
-            <Text style={estilos.erro}>Cor inválida — use o formato #RRGGBB</Text>
-          )}
 
-          <TouchableOpacity
-            onPress={handleSubmit(enviar)}
-            disabled={corInvalidaParaEnviar}
-            style={[estilos.botaoAdicionar, corInvalidaParaEnviar && estilos.botaoAdicionarDesabilitado]}
-          >
+          <TouchableOpacity onPress={handleSubmit(enviar)} style={estilos.botaoAdicionar}>
             <Text style={estilos.textoBotaoAdicionar}>Adicionar matéria</Text>
           </TouchableOpacity>
         </View>
@@ -233,10 +210,9 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   textoBolinhaCorPersonalizada: { fontSize: 18, fontWeight: "700", color: cores.textoSuave },
-  linhaCorPersonalizada: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10 },
-  previaCorPersonalizada: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, borderColor: cores.bordaCartao },
-  entradaCorPersonalizada: { flex: 1, height: 44 },
+  linhaCorPersonalizada: { marginTop: 12, gap: 14 },
+  painelCorPersonalizada: { width: "100%", height: 160, borderRadius: 15 },
+  sliderCorPersonalizada: { borderRadius: 99 },
   botaoAdicionar: { marginTop: 22, backgroundColor: cores.rosa, padding: 15, borderRadius: 16, alignItems: "center" },
-  botaoAdicionarDesabilitado: { opacity: 0.5 },
   textoBotaoAdicionar: { color: cores.branco, fontWeight: "700", fontSize: 15.5 },
 });

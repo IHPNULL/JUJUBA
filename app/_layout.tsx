@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from "react";
 import { Stack } from "expo-router";
 import { Provider } from "react-redux";
 import { Platform, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { store } from "../src/presentation/store/store";
@@ -41,14 +42,16 @@ function ConteudoComPersistencia({ children }: { children: ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <Provider store={store}>
-      <SafeAreaProvider>
-        <StatusBar style="auto" />
-        <ConteudoComPersistencia>
-          <Stack screenOptions={{ headerShown: false }} />
-        </ConteudoComPersistencia>
-        <UpdateBanner />
-      </SafeAreaProvider>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <SafeAreaProvider>
+          <StatusBar style="auto" />
+          <ConteudoComPersistencia>
+            <Stack screenOptions={{ headerShown: false }} />
+          </ConteudoComPersistencia>
+          <UpdateBanner />
+        </SafeAreaProvider>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }

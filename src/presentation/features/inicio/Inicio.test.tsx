@@ -458,11 +458,13 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
   });
 
   /**
-   * Cor personalizada aceita qualquer hex, mas só depois de validado — um
-   * hex incompleto ou mal formado não pode virar uma matéria com cor
-   * quebrada. Corrigir o texto pro formato certo libera o envio.
+   * O seletor de cor personalizada (reanimated-color-picker) só aparece
+   * depois de tocar no gatilho "+" — e some de novo ao fechar a folha, sem
+   * atrapalhar o fluxo normal de adicionar matéria (a cor arrasta um gesto
+   * real no `Panel1`/`HueSlider`, que o ambiente de teste não simula; aqui
+   * cobrimos que abrir o seletor não trava o resto do formulário).
    */
-  it("bloqueia o envio com hex personalizado inválido e libera quando fica válido", async () => {
+  it("abre o seletor de cor personalizada ao tocar no gatilho e permite adicionar a matéria normalmente", async () => {
     const loja = criarLojaDeTeste();
     const tela = await render(
       <Provider store={loja}>
@@ -471,19 +473,74 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     );
 
     await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    expect(tela.queryByTestId("cor-personalizada-picker")).toBeNull();
+
     await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Artes");
     await fireEvent.press(tela.getByTestId("cor-personalizada-gatilho"));
+    expect(tela.getByTestId("cor-personalizada-picker")).toBeTruthy();
 
-    await fireEvent.changeText(tela.getByTestId("cor-personalizada-campo"), "xyz");
     await fireEvent.press(tela.getByText("Adicionar matéria"));
-    expect(tela.queryByText("Artes")).toBeNull();
-
-    await fireEvent.changeText(tela.getByTestId("cor-personalizada-campo"), "#123ABC");
-    await fireEvent.press(tela.getByText("Adicionar matéria"));
-
     await waitFor(() => expect(tela.queryByText("Artes")).toBeTruthy());
-    expect(tela.getByTestId("marcador-cor-Artes").props.style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ backgroundColor: "#123ABC" })])
+  });
+
+  /**
+   * `notaMaxima` já vem da spec (AT/Objetiva/SAEP = 10, Tarefa = 1) — o
+   * campo precisa recusar dígitos que estourariam esse teto, sem exigir
+   * nenhum caso especial pro componente "tarefa" (ADR 0003: a fórmula é
+   * dado, não código).
+   */
+  it("recusa dígitos que fariam a nota digitada passar do teto do componente", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
     );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "História");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("História")).toBeTruthy());
+
+    const campos = tela.getAllByPlaceholderText("0,0");
+
+    // Tarefa (teto 1): "1" é aceito (= teto), "1,5" estoura e é recusado.
+    await fireEvent.changeText(campos[3], "1");
+    expect(campos[3].props.value).toBe("1");
+    await fireEvent.changeText(campos[3], "1,5");
+    expect(campos[3].props.value).toBe("1");
+
+    // AT (teto 10): "9" aceito, "99" estoura e é recusado.
+    await fireEvent.changeText(campos[0], "9");
+    expect(campos[0].props.value).toBe("9");
+    await fireEvent.changeText(campos[0], "99");
+    expect(campos[0].props.value).toBe("9");
+  });
+
+  /**
+   * Terceira opção de frentes: matéria com 3 frentes independentes
+   * (ex.: um curso dividido em três módulos), cada uma com seus 4 campos
+   * de nota e o selo do cabeçalho refletindo a quantidade real.
+   */
+  it("adiciona uma matéria com três frentes", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Redação");
+    await fireEvent.press(tela.getByText("Três frentes"));
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+
+    await waitFor(() => expect(tela.queryByText("Redação")).toBeTruthy());
+
+    expect(tela.getByText("3 frentes")).toBeTruthy();
+    expect(tela.getByText("Frente 1")).toBeTruthy();
+    expect(tela.getByText("Frente 2")).toBeTruthy();
+    expect(tela.getByText("Frente 3")).toBeTruthy();
+    expect(tela.getAllByPlaceholderText("0,0")).toHaveLength(12); // 3 frentes × 4 componentes
   });
 });

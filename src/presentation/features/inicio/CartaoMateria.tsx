@@ -31,6 +31,7 @@ const ROTULOS_COMPONENTE: Record<keyof NotasFrente, string> = {
 interface CampoNotaProps {
   rotulo: string;
   valor: string;
+  notaMaxima?: number;
   onMudar: (valor: string) => void;
   onFocar?: (campo: TextInput | null) => void;
 }
@@ -40,15 +41,23 @@ interface CampoNotaProps {
  * cada campo precisa da própria `ref` para ser medido quando o teclado abre —
  * e `useRef` não pode ser chamado dentro de um laço de renderização.
  */
-function CampoNota({ rotulo, valor, onMudar, onFocar }: CampoNotaProps) {
+function CampoNota({ rotulo, valor, notaMaxima, onMudar, onFocar }: CampoNotaProps) {
   const referencia = useRef<TextInput>(null);
+
+  /** Recusa o dígito se ele fizer a nota passar do teto do componente
+   *  (`notaMaxima` vem da spec — ex.: Tarefa vale no máximo 1). */
+  function aoMudar(texto: string) {
+    if (notaMaxima !== undefined && texto.trim() !== "" && paraDecimal(texto).gt(notaMaxima)) return;
+    onMudar(texto);
+  }
+
   return (
     <View style={estilos.campo}>
       <Text style={estilos.rotuloCampo}>{rotulo}</Text>
       <TextInput
         ref={referencia}
         value={valor}
-        onChangeText={onMudar}
+        onChangeText={aoMudar}
         onFocus={() => onFocar?.(referencia.current)}
         placeholder="0,0"
         inputMode="decimal"
@@ -120,7 +129,7 @@ export function CartaoMateria({
           <Text style={estilos.nome}>{materia.nome}</Text>
           {materia.frentes.length > 1 && (
             <View style={estilos.selo2Frentes}>
-              <Text style={estilos.textoSelo2Frentes}>2 frentes</Text>
+              <Text style={estilos.textoSelo2Frentes}>{materia.frentes.length} frentes</Text>
             </View>
           )}
         </View>
@@ -155,6 +164,7 @@ export function CartaoMateria({
                   key={componente}
                   rotulo={ROTULOS_COMPONENTE[componente]}
                   valor={notas?.[componente] ?? ""}
+                  notaMaxima={spec.componentes.find((c) => c.id === componente)?.notaMaxima}
                   onMudar={(valor) => onDefinirNota(frente.id, componente, valor)}
                   onFocar={onFocarCampo}
                 />
