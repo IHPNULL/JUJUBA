@@ -7,7 +7,7 @@ import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
 import { Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores } from "../../shared/theme";
-import { COMPONENTES, entradasDoSolver, paraDecimal } from "./simulacao";
+import { COMPONENTES, entradasDoSolver, normalizarNota, paraDecimal } from "./simulacao";
 
 interface CartaoMateriaProps {
   spec: FormulaSpec;
@@ -44,11 +44,13 @@ interface CampoNotaProps {
 function CampoNota({ rotulo, valor, notaMaxima, onMudar, onFocar }: CampoNotaProps) {
   const referencia = useRef<TextInput>(null);
 
-  /** Recusa o dígito se ele fizer a nota passar do teto do componente
-   *  (`notaMaxima` vem da spec — ex.: Tarefa vale no máximo 1). */
+  /** Tira zero à esquerda e corta em 2 casas decimais antes de checar o
+   *  teto do componente (`notaMaxima` vem da spec — ex.: Tarefa vale no
+   *  máximo 1) — um dígito que estoura o teto é recusado. */
   function aoMudar(texto: string) {
-    if (notaMaxima !== undefined && texto.trim() !== "" && paraDecimal(texto).gt(notaMaxima)) return;
-    onMudar(texto);
+    const normalizado = normalizarNota(texto);
+    if (notaMaxima !== undefined && normalizado.trim() !== "" && paraDecimal(normalizado).gt(notaMaxima)) return;
+    onMudar(normalizado);
   }
 
   return (

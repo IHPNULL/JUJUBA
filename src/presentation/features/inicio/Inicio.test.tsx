@@ -543,4 +543,27 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     expect(tela.getByText("Frente 3")).toBeTruthy();
     expect(tela.getAllByPlaceholderText("0,0")).toHaveLength(12); // 3 frentes × 4 componentes
   });
+
+  /** `normalizarNota` (simulacao.ts) tem os casos isolados — aqui só cobre
+   *  que o campo de verdade aplica a normalização a cada tecla. */
+  it("tira zero à esquerda e corta em 2 casas decimais ao digitar a nota", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Química");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+    await waitFor(() => expect(tela.queryByText("Química")).toBeTruthy());
+
+    const campos = tela.getAllByPlaceholderText("0,0");
+    await fireEvent.changeText(campos[0], "03,80"); // AT
+    expect(campos[0].props.value).toBe("3,80");
+
+    await fireEvent.changeText(campos[1], "9,999"); // Objetiva
+    expect(campos[1].props.value).toBe("9,99");
+  });
 });

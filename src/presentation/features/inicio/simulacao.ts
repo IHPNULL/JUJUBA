@@ -12,6 +12,25 @@ export function paraDecimal(valor: string): Decimal {
 }
 
 /**
+ * Normaliza o texto digitado numa nota a cada tecla: zero à esquerda na
+ * parte inteira some (mas um "0" sozinho fica, é o meio de digitar "0,5"),
+ * e a parte decimal nunca passa de 2 dígitos. Não usa `toFixed` — o valor
+ * ainda está sendo digitado, então arredondar pra 2 casas fixas destruiria
+ * o que a pessoa está no meio de escrever.
+ */
+export function normalizarNota(texto: string): string {
+  const indiceVirgula = texto.indexOf(",");
+  if (indiceVirgula === -1) return texto.replace(/^0+(?=\d)/, "");
+
+  const parteInteira = texto.slice(0, indiceVirgula).replace(/^0+(?=\d)/, "");
+  const parteDecimal = texto
+    .slice(indiceVirgula + 1)
+    .replace(/\D/g, "")
+    .slice(0, 2);
+  return `${parteInteira},${parteDecimal}`;
+}
+
+/**
  * Monta as entradas do solver de mínimos para uma frente: só conta como
  * "preenchido" o que o USUÁRIO digitou. Campo vazio e campo preenchido por
  * uma simulação anterior entram como `null` — ou seja, ficam reabertos para

@@ -17,6 +17,12 @@ notas em aberto para bater sua meta.
 - **No Android**: baixe o `.apk` em [Releases](../../releases) e instale no aparelho —
   passo a passo em [`docs/COMO-INSTALAR.md`](docs/COMO-INSTALAR.md)
 
+## Privacidade
+
+O Jujuba **não coleta nenhum dado**. Não existe conta, login, servidor ou conexão de
+rede — tudo o que você cadastra (matérias, notas, meta) fica salvo só no seu
+aparelho, e nada é enviado para lugar nenhum, nem por nós nem por terceiros.
+
 ## Licença
 
 MIT — ver [`LICENSE`](LICENSE).
