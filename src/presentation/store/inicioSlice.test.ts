@@ -2,6 +2,7 @@ import inicioReducer, {
   adicionarMateria,
   definirMeta,
   definirNotaComponente,
+  hidratar,
   limparSimulados,
   removerMateria,
   selecionarTermo,
@@ -111,5 +112,33 @@ describe("inicioSlice", () => {
 
     // Termo A: nota simulada e sua flag em `simulados` continuam intactas.
     expect(estado.materias[0].frentes[0].notas[TERMOS[0]].at).toBe("6,4");
+  });
+
+  it("hidratar substitui termoSelecionado, meta e materias pelo payload persistido", () => {
+    const materiasPersistidas = inicioReducer(estadoInicial, adicionarMateria("Química", "pink", 1)).materias;
+
+    const estado = inicioReducer(
+      estadoInicial,
+      hidratar({ termoSelecionado: TERMOS[2], meta: 8.5, materias: materiasPersistidas })
+    );
+
+    expect(estado.termoSelecionado).toBe(TERMOS[2]);
+    expect(estado.meta).toBe(8.5);
+    expect(estado.materias).toEqual(materiasPersistidas);
+  });
+
+  it("hidratar sempre zera simulados — a sessão anterior nunca sobrevive à restauração", () => {
+    let estado = inicioReducer(estadoInicial, adicionarMateria("Matemática", "pink", 1));
+    const materiaId = estado.materias[0].id;
+    const frenteId = estado.materias[0].frentes[0].id;
+    estado = inicioReducer(
+      estado,
+      definirNotaComponente({ materiaId, frenteId, componente: "at", valor: "6,0", simulado: true })
+    );
+    expect(Object.keys(estado.simulados)).toHaveLength(1);
+
+    estado = inicioReducer(estado, hidratar({ termoSelecionado: TERMOS[0], meta: 7, materias: estado.materias }));
+
+    expect(estado.simulados).toEqual({});
   });
 });

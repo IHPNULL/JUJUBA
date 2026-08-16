@@ -109,6 +109,17 @@ const inicioSlice = createSlice({
         delete state.simulados[chave];
       }
     },
+    /**
+     * Restaura estado persistido (rascunho) ao abrir o app —
+     * docs/ARQUITETURA.md §6. `simulados` nunca vem do payload: é sempre
+     * sessão nova, nunca persistido.
+     */
+    hidratar(state, action: PayloadAction<{ termoSelecionado: string; meta: number; materias: Materia[] }>) {
+      state.termoSelecionado = action.payload.termoSelecionado;
+      state.meta = action.payload.meta;
+      state.materias = action.payload.materias;
+      state.simulados = {};
+    },
     limparSimulados(state) {
       const termo = state.termoSelecionado;
       for (const materia of state.materias) {
@@ -137,5 +148,6 @@ export const {
   removerMateria,
   definirNotaComponente,
   limparSimulados,
+  hidratar,
 } = inicioSlice.actions;
 export default inicioSlice.reducer;
