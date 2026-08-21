@@ -19,9 +19,10 @@ notas em aberto para bater sua meta.
 
 ## Métricas
 
-Downloads do `.apk`: `npm run downloads`. Acessos da versão web por dia, semana
-e mês: `npm run acessos`. Instalações e uso do app Android: painel do EAS.
-Detalhes de cada fonte em [`docs/METRICAS.md`](docs/METRICAS.md).
+`npm run metricas` gera uma página com tudo junto: downloads do `.apk`, acessos
+da versão web por dia, semana e mês, e o ponteiro para as instalações no painel
+do EAS. Cada fonte também tem seu comando (`npm run downloads`,
+`npm run acessos`). Detalhes em [`docs/METRICAS.md`](docs/METRICAS.md).
 
 ## Privacidade
 
