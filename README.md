@@ -19,9 +19,9 @@ notas em aberto para bater sua meta.
 
 ## Métricas
 
-Quantas vezes o `.apk` foi baixado: `npm run downloads`. Instalações, uso e
-adoção de updates: painel do EAS. Detalhes das quatro fontes em
-[`docs/METRICAS.md`](docs/METRICAS.md).
+Downloads do `.apk`: `npm run downloads`. Acessos da versão web por dia, semana
+e mês: `npm run acessos`. Instalações e uso do app Android: painel do EAS.
+Detalhes de cada fonte em [`docs/METRICAS.md`](docs/METRICAS.md).
 
 ## Privacidade
 
@@ -29,7 +29,8 @@ adoção de updates: painel do EAS. Detalhes das quatro fontes em
 salvas só no seu aparelho, num banco local. Não existe conta, login ou
 sincronização, e nada disso é enviado para lugar nenhum.
 
-**O que o app envia.** O Jujuba fala com dois serviços da Expo, e só com eles:
+**O que o app envia.** No app Android, e só nele, o Jujuba fala com dois
+serviços da Expo:
 
 - consulta se existe atualização do app (`u.expo.dev`), ao abrir e ao voltar
   para o primeiro plano, no máximo uma vez por hora;
@@ -38,7 +39,10 @@ sincronização, e nada disso é enviado para lugar nenhum.
   ou iOS, a versão do sistema e um número aleatório criado na instalação — nada
   que identifique você, e nenhuma nota.
 
-Isso vale para o app Android. A versão web não envia nem esse registro.
+**Na versão web**, no lugar desses dois, roda o contador de acessos do
+GoatCounter — sem cookie e sem dado pessoal: ele guarda um hash de IP e
+navegador com um sal que muda todo dia, só para não contar a mesma visita duas
+vezes, e descarta o resto.
 
 O detalhamento campo a campo está em [`docs/METRICAS.md`](docs/METRICAS.md).
 

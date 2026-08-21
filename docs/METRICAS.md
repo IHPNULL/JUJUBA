@@ -9,6 +9,7 @@ diferentes, medindo coisas diferentes — nenhuma delas sozinha responde tudo.
 | Quantas instalações existem e estão ativas | EAS Insights (`expo-insights`) | Aproximada, só Android/iOS |
 | Quantos aparelhos pegaram um update OTA | Painel do EAS Update | Aproximada |
 | Instalações e desinstalações reais | Play Console (quando publicado) | Exata, só quem instalar pela Play |
+| Acessos da versão web por dia/semana/mês | GoatCounter (`npm run acessos`) | Visitantes únicos por dia |
 
 ## 1. Downloads das Releases
 
@@ -76,3 +77,60 @@ Onde ver: [expo.dev](https://expo.dev) → projeto `jujuba` → **Updates**.
 versão e por aparelho, sem depender de nada dentro do app. Vale só para quem
 instalar pela loja. Passo a passo em
 [`PUBLICAR-NA-PLAY-STORE.md`](PUBLICAR-NA-PLAY-STORE.md).
+
+## 5. Acessos da versão web
+
+O GitHub Pages serve arquivos estáticos e não guarda log nenhum, então contar
+acesso exige medir no navegador. O `expo-insights` não serve aqui: ele é um
+módulo nativo (`platforms: ["apple", "android"]`, e o JS dele é literalmente
+`export default {}`), então não roda na web — nem se o site mudasse de
+hospedagem.
+
+A escolha foi o [GoatCounter](https://www.goatcounter.com): gratuito para uso
+não comercial, sem cookies, sem coletar dado pessoal, e com API para ler os
+números de fora do painel.
+
+### Como está ligado
+
+O snippet fica em [`public/index.html`](../public/index.html) — o Expo usa esse
+arquivo como shell do export web no lugar do template interno. O código do site
+está escrito lá direto (`jujuba.goatcounter.com`); é público por natureza, não
+é segredo. Se você registrar outro nome no GoatCounter, esse é o único lugar
+que muda.
+
+O `count.js` ignora `localhost` e IPs de rede privada, então `npm run web` no
+dia a dia não entra na contagem.
+
+### Configuração inicial (uma vez)
+
+1. Crie o site em [goatcounter.com](https://www.goatcounter.com) com o código
+   `jujuba` — a URL vira `https://jujuba.goatcounter.com`. Se o nome estiver
+   ocupado, escolha outro e ajuste o `data-goatcounter` do
+   `public/index.html`.
+2. No painel: **Settings → API** → gerar uma chave com permissão de leitura de
+   estatísticas.
+3. Guarde a chave fora do repositório. Ela é secreta — quem tiver ela lê todas
+   as suas estatísticas.
+
+### Ver os números
+
+```bash
+GOATCOUNTER_TOKEN=... npm run acessos              # últimos 90 dias
+GOATCOUNTER_TOKEN=... npm run acessos -- --dias=30
+GOATCOUNTER_TOKEN=... npm run acessos -- --json
+```
+
+Sai o total por dia (últimos 14), por semana (segunda a domingo) e por mês.
+Variáveis aceitas: `GOATCOUNTER_TOKEN` (obrigatória), `GOATCOUNTER_CODE`
+(padrão `jujuba`).
+
+**O que o número significa.** O GoatCounter conta *visitantes únicos por dia*,
+sem cookie: ele gera um hash a partir de IP, navegador e um sal que muda todo
+dia, e descarta o resto. Some-se que a agregação por semana e por mês deste
+script é a soma dos dias — então quem entra na segunda e na quarta conta duas
+vezes no total da semana. É uma medida de movimento, não de pessoas distintas
+no mês.
+
+**Limite conhecido:** o `count.js` registra o carregamento da página. O Jujuba
+é uma tela só, então na prática cada acesso é uma visita — mas navegação
+interna futura não seria contada sem ajuste.
