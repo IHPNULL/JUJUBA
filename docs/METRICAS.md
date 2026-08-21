@@ -3,6 +3,20 @@
 Onde ver quantas pessoas baixaram, instalaram e usam o app. São quatro fontes
 diferentes, medindo coisas diferentes — nenhuma delas sozinha responde tudo.
 
+## Tudo numa página só
+
+```bash
+GOATCOUNTER_TOKEN=... npm run metricas
+```
+
+Gera `painel-metricas.html` na raiz (fora do Git) com downloads, acessos da web
+por dia/semana/mês e o ponteiro para as instalações. É um arquivo autocontido:
+abra no navegador, sem servidor. Aceita `--dias=N` e `--saida=caminho`.
+
+Se uma das fontes falhar — token vencido, rede fora —, a página é gerada
+assim mesmo, com o aviso no lugar daquela seção. As seções abaixo detalham
+cada fonte e os comandos de terminal equivalentes.
+
 | Quero saber | Fonte | Precisão |
 |---|---|---|
 | Quantas vezes o `.apk` foi baixado | Releases do GitHub (`npm run downloads`) | Exata (downloads, não instalações) |
@@ -10,6 +24,7 @@ diferentes, medindo coisas diferentes — nenhuma delas sozinha responde tudo.
 | Quantos aparelhos pegaram um update OTA | Painel do EAS Update | Aproximada |
 | Instalações e desinstalações reais | Play Console (quando publicado) | Exata, só quem instalar pela Play |
 | Acessos da versão web por dia/semana/mês | GoatCounter (`npm run acessos`) | Visitantes únicos por dia |
+| Tudo junto numa página | `npm run metricas` | Junta as fontes acima |
 
 ## 1. Downloads das Releases
 

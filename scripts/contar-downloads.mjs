@@ -11,78 +11,7 @@
 // (`GITHUB_TOKEN=ghp_...`) antes de rodar. `JUJUBA_REPO=dono/repo` aponta para
 // outro repositorio e `JUJUBA_API_BASE` troca a URL da API (usado em teste).
 
-import { execFileSync } from "node:child_process";
-
-const API = process.env.JUJUBA_API_BASE ?? "https://api.github.com";
-
-// Descobre `dono/repo` pelo remoto `origin`; da para forcar com JUJUBA_REPO.
-function repositorioAlvo() {
-  if (process.env.JUJUBA_REPO) return process.env.JUJUBA_REPO;
-  if (process.env.GITHUB_REPOSITORY) return process.env.GITHUB_REPOSITORY;
-
-  try {
-    const url = execFileSync("git", ["config", "--get", "remote.origin.url"], {
-      encoding: "utf8",
-    }).trim();
-    const achado = url.match(/github\.com[/:]([^/]+)\/(.+?)(?:\.git)?$/);
-    if (achado) return `${achado[1]}/${achado[2]}`;
-  } catch {
-    // sem git ou sem remoto: cai no padrao abaixo
-  }
-
-  return "ihpnull/JUJUBA";
-}
-
-async function buscarReleases(repo) {
-  const cabecalhos = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "jujuba-contar-downloads",
-  };
-  if (process.env.GITHUB_TOKEN) {
-    cabecalhos.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  }
-
-  const releases = [];
-  for (let pagina = 1; ; pagina += 1) {
-    const url = `${API}/repos/${repo}/releases?per_page=100&page=${pagina}`;
-    const resposta = await fetch(url, { headers: cabecalhos });
-
-    if (!resposta.ok) {
-      const corpo = await resposta.text();
-      throw new Error(
-        `GitHub respondeu ${resposta.status} para ${url}\n${corpo.slice(0, 300)}`,
-      );
-    }
-
-    const lote = await resposta.json();
-    releases.push(...lote);
-    if (lote.length < 100) return releases;
-  }
-}
-
-function resumir(releases) {
-  const porRelease = releases.map((release) => ({
-    tag: release.tag_name,
-    nome: release.name || release.tag_name,
-    publicadaEm: release.published_at,
-    rascunho: release.draft,
-    arquivos: (release.assets ?? []).map((asset) => ({
-      nome: asset.name,
-      downloads: asset.download_count,
-      tamanhoMb: +(asset.size / 1024 / 1024).toFixed(1),
-    })),
-  }));
-
-  for (const release of porRelease) {
-    release.downloads = release.arquivos.reduce((soma, a) => soma + a.downloads, 0);
-  }
-
-  return {
-    total: porRelease.reduce((soma, r) => soma + r.downloads, 0),
-    releases: porRelease,
-  };
-}
+import { coletarDownloads } from "./lib/downloads.mjs";
 
 function imprimir({ total, releases }, repo) {
   if (releases.length === 0) {
@@ -112,16 +41,14 @@ function imprimir({ total, releases }, repo) {
 }
 
 async function main() {
-  const repo = repositorioAlvo();
-  const releases = await buscarReleases(repo);
-  const resumo = resumir(releases);
+  const resumo = await coletarDownloads();
 
   if (process.argv.includes("--json")) {
-    console.log(JSON.stringify({ repo, ...resumo }, null, 2));
+    console.log(JSON.stringify(resumo, null, 2));
     return;
   }
 
-  imprimir(resumo, repo);
+  imprimir(resumo, resumo.repo);
 }
 
 main().catch((erro) => {
