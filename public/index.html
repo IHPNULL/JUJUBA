@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+  Shell HTML da versão web. É uma cópia do template padrão do Expo
+  (node_modules/@expo/cli/static/template/index.html) com o contador de
+  acessos adicionado no fim do <head>.
+
+  O Expo usa este arquivo no lugar do template interno sempre que ele existe
+  em public/, preenche os marcadores de idioma e título (vindos de
+  expo.web.lang e expo.name no app.json) e injeta os <script>/<link> do
+  bundle. Ao atualizar o SDK, vale conferir se o template padrão mudou.
+
+  Atenção: a substituição desses marcadores troca só a primeira ocorrência de
+  cada um no arquivo, então não escreva os nomes deles aqui em cima — o
+  comentário ficaria com o valor e as tags de verdade ficariam sem.
+
+  Só afeta a web: iOS e Android não passam por aqui. Ver docs/METRICAS.md §5.
+-->
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+
+    <!--
+      Contador de acessos (GoatCounter). O subdomínio abaixo precisa bater com
+      o código do site criado em goatcounter.com — se você registrar outro
+      nome, é este único lugar que muda. Não conta localhost, então
+      `npm run web` no dia a dia não polui os números.
+    -->
+    <script
+      async
+      data-goatcounter="https://jujuba.goatcounter.com/count"
+      src="https://gc.zgo.at/count.js"
+    ></script>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>
