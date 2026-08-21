@@ -9,6 +9,11 @@ Cadastre suas matérias, lance as notas de AT, Objetiva, SAEP e Tarefa por trime
 a média calculada na hora — com a fórmula oficial do Ser — além de quanto falta tirar nas
 notas em aberto para bater sua meta.
 
+**Objetivo do ano.** Cada matéria mostra quantos dos 24 pontos você já garantiu (o 3º
+trimestre vale dobrado), quanto ainda falta, e a menor nota que resolve em cada prova que
+resta. Se um trimestre ficar abaixo da sua meta, o app diz quanto tirar na recuperação e
+qual nota substituir para render mais.
+
 **Offline-first.** Suas notas ficam só no aparelho: sem conta, sem login, sem sincronização.
 
 ## Como usar

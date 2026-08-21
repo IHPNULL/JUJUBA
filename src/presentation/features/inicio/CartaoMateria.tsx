@@ -8,6 +8,8 @@ import { FormulaSpec } from "../../../domain/formula/types";
 import { Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores } from "../../shared/theme";
 import { COMPONENTES, entradasDoSolver, normalizarNota, paraDecimal } from "./simulacao";
+import { calcularObjetivoDaMateria } from "./objetivoDaMateria";
+import { PainelObjetivo } from "./PainelObjetivo";
 
 interface CartaoMateriaProps {
   spec: FormulaSpec;
@@ -104,6 +106,8 @@ export function CartaoMateria({
       new Decimal(meta)
     )
   );
+  const objetivo = calcularObjetivoDaMateria(spec, materia, termoSelecionado, meta, simulados);
+
   const algumImpossivel = resultadosMinimos.some((resultado) => resultado.tipo === "impossivel");
   const algumComVazios = resultadosMinimos.some((resultado) => resultado.tipo !== "semVazios");
 
@@ -175,6 +179,13 @@ export function CartaoMateria({
           </View>
         );
       })}
+
+      <PainelObjetivo
+        spec={spec}
+        objetivo={objetivo}
+        rotulos={ROTULOS_COMPONENTE}
+        termoSelecionado={termoSelecionado}
+      />
 
       <View style={estilos.rodape}>
         <Text style={[estilos.dica, dicaCor ? { color: dicaCor } : null]}>{dicaTexto}</Text>
