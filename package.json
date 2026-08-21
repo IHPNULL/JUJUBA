@@ -12,6 +12,7 @@
     "expo-dev-client": "~57.0.12",
     "expo-document-picker": "~57.0.1",
     "expo-file-system": "~57.0.2",
+    "expo-insights": "~57.0.12",
     "expo-linking": "~57.0.6",
     "expo-router": "~57.0.13",
     "expo-secure-store": "~57.0.1",
@@ -63,7 +64,8 @@
     "dev:link": "adb reverse tcp:8081 tcp:8081",
     "dev": "npm run dev:link && expo start --dev-client",
     "build": "eas build --profile production --platform android",
-    "build:web": "expo export --platform web"
+    "build:web": "expo export --platform web",
+    "downloads": "node scripts/contar-downloads.mjs"
   },
   "private": true,
   "engines": {
