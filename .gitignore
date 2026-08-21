@@ -30,6 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# chave da conta de servico da Play (NUNCA versionar)
+play-service-account.json
+
 # local env files
 .env*.local
 

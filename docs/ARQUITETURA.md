@@ -255,7 +255,7 @@ bug significa dizer ao aluno que ele passou quando não passou.
 
 ### iOS
 - `PrivacyInfo.xcprivacy` obrigatório — declarar uso de `UserDefaults` (motivo `CA92.1`) e File Timestamp APIs.
-- Como não há coleta de dados: *App Privacy* na App Store Connect = "Data Not Collected". Sem ATT.
+- *App Privacy* na App Store Connect: declarar "Usage Data / Product Interaction" e "Identifiers / Device ID" — o `expo-insights` envia um evento por abertura (ver `docs/METRICAS.md` §2). Não vinculado à identidade e não usado para rastreamento, então segue sem ATT. Dados escolares seguem como não coletados.
 - Suporte a Dynamic Type e VoiceOver desde a v1 (motivo comum de review negativo em apps educacionais).
 - `NSFileProtectionCompleteUntilFirstUserAuthentication` no banco.
 - Mínimo: iOS 15.
@@ -263,13 +263,13 @@ bug significa dizer ao aluno que ele passou quando não passou.
 ### Android
 - `data_extraction_rules.xml` + `full_backup_content` explícitos (Android 12+).
 - Sem permissões perigosas: o SAF cobre a importação do prospecto sem `READ_EXTERNAL_STORAGE`.
-- Data Safety form coerente com "nenhum dado sai do dispositivo".
+- Data Safety form coerente com o que o app envia: notas/matérias/meta não coletadas; *App info and performance* e *Device or other IDs* coletados pelo `expo-insights` (ver `docs/METRICAS.md` §2 e `docs/PUBLICAR-NA-PLAY-STORE.md` §4).
 - `minSdk 24`, `targetSdk` mais recente exigido pela Play.
 
 ## 12. CI/CD
 
 GitHub Actions: `lint` (ESLint/TypeScript) + `test` (Jest) em todo PR.
-Build e assinatura: EAS Build; publicação: EAS Submit (fase 2).
+Build e assinatura: EAS Build; publicação: EAS Submit (perfil `production` do `eas.json`, ver `docs/PUBLICAR-NA-PLAY-STORE.md`).
 Correções de JS sem código nativo podem sair via EAS Update (OTA), sem review de loja.
 Branches: `main` protegida, trabalho em `feat/*`, merge por PR.
 
