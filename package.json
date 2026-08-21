@@ -67,7 +67,8 @@
     "build:web": "expo export --platform web",
     "downloads": "node scripts/contar-downloads.mjs",
     "acessos": "node scripts/contar-acessos.mjs",
-    "metricas": "node scripts/gerar-painel.mjs"
+    "metricas": "node scripts/gerar-painel.mjs",
+    "release": "bash scripts/publicar-release.sh"
   },
   "private": true,
   "engines": {
