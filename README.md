@@ -17,6 +17,13 @@ notas em aberto para bater sua meta.
 - **No Android**: baixe o `.apk` em [Releases](../../releases) e instale no aparelho —
   passo a passo em [`docs/COMO-INSTALAR.md`](docs/COMO-INSTALAR.md)
 
+## Downloads
+
+Para saber quantas vezes o `.apk` foi baixado, rode `npm run downloads` — o script lê o
+contador que o próprio GitHub mantém em cada arquivo das Releases e soma tudo
+(`-- --json` para a saída em JSON). O número vem da API do GitHub, não do app: nada
+foi adicionado ao Jujuba para medir isso.
+
 ## Privacidade
 
 O Jujuba **não coleta nenhum dado**. Não existe conta, login, servidor ou conexão de
