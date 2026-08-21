@@ -1,0 +1,89 @@
+name: Build APK e publicar release
+
+# Disparo manual: Actions > "Build APK e publicar release" > Run workflow.
+# Roda onde as credenciais já vivem — o EXPO_TOKEN é o mesmo secret que o
+# eas-update.yml usa. Nada de chave de assinatura local: quem assina é o EAS,
+# com a mesma keystore das releases anteriores, então o .apk gerado instala
+# por cima do app já instalado sem apagar os dados de quem usa.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag da release (ex.: v1.8.0). Vazio = usa a versão do package.json.'
+        required: false
+        type: string
+      rascunho:
+        description: 'Publicar como rascunho, para revisar antes de liberar'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-e-publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Os mesmos portões do CI: uma release nunca sai de código que não passa.
+      - run: npm run lint
+      - run: npm test -- --ci
+
+      - name: Definir a tag
+        id: versao
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="v$(node -p "require('./package.json').version")"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "arquivo=jujuba-$TAG.apk" >> "$GITHUB_OUTPUT"
+          echo "Publicando $TAG"
+
+      - name: Recusar tag que já existe
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.versao.outputs.tag }}" >/dev/null 2>&1; then
+            echo "A tag ${{ steps.versao.outputs.tag }} já existe. Suba a versão antes de publicar."
+            exit 1
+          fi
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          eas-cache: true
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Perfil `apk` (eas.json): mesmo que `production`, mas gera .apk em vez
+      # do .aab que a Play exige. O .aab continua disponível pelo perfil
+      # `production` para o EAS Submit.
+      - name: Build no EAS
+        run: eas build --profile apk --platform android --non-interactive --wait --json > build.json
+
+      - name: Baixar o .apk
+        run: |
+          URL=$(jq -r '[.. | objects | .applicationArchiveUrl? // empty] | first' build.json)
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "Não achei a URL do artefato na saída do EAS:"
+            cat build.json
+            exit 1
+          fi
+          curl -fL --retry 3 -o "${{ steps.versao.outputs.arquivo }}" "$URL"
+          ls -lh "${{ steps.versao.outputs.arquivo }}"
+
+      - name: Publicar a release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versao.outputs.tag }}
+          name: Jujuba ${{ steps.versao.outputs.tag }}
+          draft: ${{ inputs.rascunho }}
+          generate_release_notes: true
+          files: ${{ steps.versao.outputs.arquivo }}
