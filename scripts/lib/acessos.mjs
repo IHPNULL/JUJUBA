@@ -37,18 +37,7 @@ export async function buscarDiario({ token, base, dias }) {
   url.searchParams.set("start", horaCheia(inicio));
   url.searchParams.set("end", horaCheia(fim));
 
-  const resposta = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-  });
-
-  if (!resposta.ok) {
-    const corpo = await resposta.text();
-    throw new Error(
-      `GoatCounter respondeu ${resposta.status} para ${url.pathname}\n${corpo.slice(0, 300)}`,
-    );
-  }
-
-  const { stats = [], total = 0 } = await resposta.json();
+  const { stats = [], total = 0 } = await buscarComRetentativa(url, token);
 
   return {
     total,
@@ -56,6 +45,40 @@ export async function buscarDiario({ token, base, dias }) {
       .map((s) => ({ dia: s.day, visitantes: s.daily ?? 0 }))
       .sort((a, b) => a.dia.localeCompare(b.dia)),
   };
+}
+
+/**
+ * A API do GoatCounter devolve 404 esporadico para requisicao valida: ja
+ * aconteceu duas vezes aqui, e nas duas a MESMA chamada passou na tentativa
+ * seguinte (8/8 num teste logo depois). Como 404 normalmente e definitivo,
+ * vale dizer por que ele entra na retentativa: nao e "nao existe", e ruido do
+ * servidor — tratar como definitivo faria o painel mostrar erro em dia
+ * perfeitamente normal.
+ *
+ * 401 e 403 NAO sao retentados: token errado nao melhora esperando.
+ */
+async function buscarComRetentativa(url, token, tentativas = 3) {
+  let ultimoErro;
+
+  for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
+    const resposta = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+
+    if (resposta.ok) return resposta.json();
+
+    const corpo = await resposta.text();
+    ultimoErro = new Error(
+      `GoatCounter respondeu ${resposta.status} para ${url.pathname}\n${corpo.slice(0, 300)}`,
+    );
+
+    if (resposta.status === 401 || resposta.status === 403) throw ultimoErro;
+    if (tentativa < tentativas) {
+      await new Promise((resolver) => setTimeout(resolver, 400 * tentativa));
+    }
+  }
+
+  throw ultimoErro;
 }
 
 // Segunda-feira da semana ISO de uma data YYYY-MM-DD, como rotulo.
