@@ -1,8 +1,12 @@
 import Constants from "expo-constants";
+import { useState } from "react";
 import { Image, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { cores } from "../../shared/theme";
 import { IconeFeedback } from "../../shared/components/IconeFeedback";
+import { IconeNovidades } from "../../shared/components/IconeNovidades";
+import { ModalNovidades } from "../../shared/components/ModalNovidades";
 import { montarUrlDeFeedback } from "../../shared/feedback";
+import { novidadeDaVersao } from "../../shared/novidades";
 import { TERMOS } from "../../store/inicioSlice";
 
 const iconeJujuba = require("../../../../assets/jujuba-icon.jpeg");
@@ -13,6 +17,12 @@ interface HeaderInicioProps {
 }
 
 export function HeaderInicio({ termoSelecionado, onSelecionarTermo }: HeaderInicioProps) {
+  // Só a web ganha esse botão: no app o mesmo texto aparece sozinho na
+  // primeira abertura de cada versão (ver `useNovidades`), e ali um segundo
+  // caminho para a mesma coisa só ocuparia o topo da tela.
+  const novidadeDaWeb = Platform.OS === "web" ? novidadeDaVersao(Constants.expoConfig?.version) : null;
+  const [novidadesAbertas, setNovidadesAbertas] = useState(false);
+
   function abrirFeedback() {
     const url = montarUrlDeFeedback({
       versao: Constants.expoConfig?.version,
@@ -31,16 +41,33 @@ export function HeaderInicio({ termoSelecionado, onSelecionarTermo }: HeaderInic
           <Text style={estilos.saudacao}>Oi!</Text>
           <Text style={estilos.subtitulo}>Digite suas notas e veja a média na hora</Text>
         </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Enviar feedback"
-          accessibilityHint="Abre um formulário no navegador para relatar um problema ou sugerir uma ideia"
-          onPress={abrirFeedback}
-          style={estilos.botaoFeedback}
-        >
-          <IconeFeedback tamanho={24} cor="rgba(255,255,255,0.8)" />
-        </TouchableOpacity>
+        <View style={estilos.grupoBotoes}>
+          {novidadeDaWeb && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Ver as novidades desta versão"
+              accessibilityHint="Abre a lista do que mudou na versão mais recente"
+              onPress={() => setNovidadesAbertas(true)}
+              style={estilos.botaoIcone}
+            >
+              <IconeNovidades tamanho={24} cor="rgba(255,255,255,0.8)" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Enviar feedback"
+            accessibilityHint="Abre um formulário no navegador para relatar um problema ou sugerir uma ideia"
+            onPress={abrirFeedback}
+            style={estilos.botaoIcone}
+          >
+            <IconeFeedback tamanho={24} cor="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+        </View>
       </View>
+      <ModalNovidades
+        novidade={novidadesAbertas ? novidadeDaWeb : null}
+        onFechar={() => setNovidadesAbertas(false)}
+      />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={estilos.chips}>
         {TERMOS.map((termo) => {
           const selecionado = termo === termoSelecionado;
@@ -65,11 +92,13 @@ const estilos = StyleSheet.create({
   /** `minWidth: 0` deixa o subtítulo quebrar em vez de empurrar o botão de
    *  feedback para fora da tela em larguras de celular. */
   blocoSaudacao: { flexShrink: 1, minWidth: 0 },
+  /** `marginLeft: "auto"` no grupo (e não em cada botão): duas margens
+   *  automáticas na mesma linha dividiriam a sobra entre elas e abririam um
+   *  vão entre os ícones. */
+  grupoBotoes: { marginLeft: "auto", flexShrink: 0, flexDirection: "row", gap: 8 },
   /** Contorno em vez de fundo chapado: dá a leitura de botão sem competir
    *  com a saudação. O padding mantém a área de toque em ~44pt. */
-  botaoFeedback: {
-    marginLeft: "auto",
-    flexShrink: 0,
+  botaoIcone: {
     alignItems: "center",
     justifyContent: "center",
     padding: 9,

@@ -7,6 +7,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { store } from "../src/presentation/store/store";
 import { UpdateBanner } from "../src/presentation/shared/components/UpdateBanner";
+import { ModalNovidades } from "../src/presentation/shared/components/ModalNovidades";
+import { useNovidades } from "../src/presentation/shared/hooks/useNovidades";
 import { usePersistenciaInicio } from "../src/presentation/features/inicio/usePersistenciaInicio";
 import type { RascunhoRepository } from "../src/domain/repositories/rascunhoRepository";
 import { RascunhoRepositoryDrizzle } from "../src/data/repositories/rascunhoRepositoryDrizzle";
@@ -35,9 +37,17 @@ function criarRepositorioRascunho(): { repositorio: RascunhoRepository; prontoBa
 function ConteudoComPersistencia({ children }: { children: ReactNode }) {
   const { repositorio, prontoBanco } = useMemo(() => criarRepositorioRascunho(), []);
   const { pronto } = usePersistenciaInicio(repositorio, prontoBanco);
+  // Mesmo repositório da tela Início: "O que há de novo" é só mais uma chave
+  // no armazenamento chave-valor do app (ver useNovidades).
+  const { novidade, fechar } = useNovidades(repositorio, prontoBanco);
 
   if (!pronto) return <View style={{ flex: 1, backgroundColor: cores.fundo }} />;
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ModalNovidades novidade={novidade} onFechar={fechar} />
+    </>
+  );
 }
 
 export default function RootLayout() {
