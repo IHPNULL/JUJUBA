@@ -19,6 +19,13 @@ export interface Novidade {
 /** Mais nova primeiro (só a que casa com a versão instalada é usada). */
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.9.0",
+    itens: [
+      "Esta telinha: sempre que o app for atualizado, ela abre uma vez contando o que mudou.",
+      "Na versão do navegador, o mesmo texto fica no ícone de brilhos ali em cima, ao lado do foguete.",
+    ],
+  },
+  {
     versao: "1.8.0",
     itens: [
       "Objetivo do ano: diga quantos pontos você quer somar e o app calcula o que falta em cada matéria.",

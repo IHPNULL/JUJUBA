@@ -1,6 +1,6 @@
 {
   "name": "jujuba",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@hookform/resolvers": "^5.8.0",
