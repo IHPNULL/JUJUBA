@@ -5,7 +5,7 @@ import { avaliarPeriodo, mediaEntreFrentes } from "../../../domain/formula/motor
 import { resolverMinimosComponentes } from "../../../domain/formula/componentGoalSolver";
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
-import { Materia, NotasFrente } from "../../store/inicioSlice";
+import { chaveSimulado, Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores } from "../../shared/theme";
 import { COMPONENTES, entradasDoSolver, normalizarNota, paraDecimal } from "./simulacao";
 import { calcularObjetivoDaMateria } from "./objetivoDaMateria";
@@ -33,6 +33,8 @@ const ROTULOS_COMPONENTE: Record<keyof NotasFrente, string> = {
 interface CampoNotaProps {
   rotulo: string;
   valor: string;
+  /** Valor veio de uma simulação, não do teclado do usuário. */
+  simulado: boolean;
   notaMaxima?: number;
   onMudar: (valor: string) => void;
   onFocar?: (campo: TextInput | null) => void;
@@ -43,7 +45,7 @@ interface CampoNotaProps {
  * cada campo precisa da própria `ref` para ser medido quando o teclado abre —
  * e `useRef` não pode ser chamado dentro de um laço de renderização.
  */
-function CampoNota({ rotulo, valor, notaMaxima, onMudar, onFocar }: CampoNotaProps) {
+function CampoNota({ rotulo, valor, simulado, notaMaxima, onMudar, onFocar }: CampoNotaProps) {
   const referencia = useRef<TextInput>(null);
 
   /** Tira zero à esquerda e corta em 2 casas decimais antes de checar o
@@ -55,6 +57,8 @@ function CampoNota({ rotulo, valor, notaMaxima, onMudar, onFocar }: CampoNotaPro
     onMudar(normalizado);
   }
 
+  const digitadoPeloUsuario = valor.trim() !== "" && !simulado;
+
   return (
     <View style={estilos.campo}>
       <Text style={estilos.rotuloCampo}>{rotulo}</Text>
@@ -65,7 +69,7 @@ function CampoNota({ rotulo, valor, notaMaxima, onMudar, onFocar }: CampoNotaPro
         onFocus={() => onFocar?.(referencia.current)}
         placeholder="0,0"
         inputMode="decimal"
-        style={estilos.entrada}
+        style={[estilos.entrada, digitadoPeloUsuario && estilos.entradaPreenchida]}
       />
     </View>
   );
@@ -170,6 +174,9 @@ export function CartaoMateria({
                   key={componente}
                   rotulo={ROTULOS_COMPONENTE[componente]}
                   valor={notas?.[componente] ?? ""}
+                  simulado={
+                    !!simulados[chaveSimulado(materia.id, termoSelecionado, frente.id, componente)]
+                  }
                   notaMaxima={spec.componentes.find((c) => c.id === componente)?.notaMaxima}
                   onMudar={(valor) => onDefinirNota(frente.id, componente, valor)}
                   onFocar={onFocarCampo}
@@ -233,6 +240,12 @@ const estilos = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: cores.texto,
+  },
+  /** Campo já preenchido pelo aluno — acento rosa pra diferenciar de
+   *  campos ainda vazios. Valores calculados mantêm a cor original. */
+  entradaPreenchida: {
+    borderColor: cores.rosa,
+    backgroundColor: cores.rosaClaro,
   },
   rodape: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 13 },
   dica: { flex: 1, fontSize: 11.5, fontWeight: "700", color: cores.textoFraco },
