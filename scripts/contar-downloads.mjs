@@ -7,9 +7,12 @@
 //   npm run downloads              # todas as releases
 //   npm run downloads -- --json    # saida em JSON, para colar em outro lugar
 //
-// Repositorio privado ou limite de requisicoes atingido: exporte um token
-// (`GITHUB_TOKEN=ghp_...`) antes de rodar. `JUJUBA_REPO=dono/repo` aponta para
-// outro repositorio e `JUJUBA_API_BASE` troca a URL da API (usado em teste).
+// Repositorio privado ou limite de requisicoes atingido: ponha um token
+// (`GITHUB_TOKEN=ghp_...`) no `.env` da raiz — o `npm run` le esse arquivo via
+// `--env-file-if-exists` (package.json), e ele e ignorado pelo Git. Exportar a
+// variavel na linha de comando continua funcionando. `JUJUBA_REPO=dono/repo`
+// aponta para outro repositorio e `JUJUBA_API_BASE` troca a URL da API (usado
+// em teste). Ver `.env.example`.
 
 import { coletarDownloads } from "./lib/downloads.mjs";
 

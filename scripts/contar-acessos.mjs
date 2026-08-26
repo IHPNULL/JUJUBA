@@ -2,13 +2,19 @@
 // Conta os acessos da versao web (GitHub Pages) por dia, semana e mes, lendo a
 // API do GoatCounter. Ver docs/METRICAS.md §5 para a configuracao inicial.
 //
-//   GOATCOUNTER_TOKEN=... npm run acessos
-//   GOATCOUNTER_TOKEN=... npm run acessos -- --dias=180
-//   GOATCOUNTER_TOKEN=... npm run acessos -- --json
+//   npm run acessos
+//   npm run acessos -- --dias=180
+//   npm run acessos -- --json
 //
 // Variaveis: GOATCOUNTER_CODE (subdominio do site, padrao "jujuba"),
 // GOATCOUNTER_TOKEN (chave de API, obrigatoria) e GOATCOUNTER_API_BASE
 // (troca a URL da API; usado em teste).
+//
+// O `npm run` le essas variaveis de um `.env` na raiz (via
+// `--env-file-if-exists`, em package.json) — o arquivo e ignorado pelo Git,
+// entao a chave nao vaza. Sem `.env`, o Node avisa e segue; da para passar a
+// variavel na linha de comando como antes: `GOATCOUNTER_TOKEN=... npm run
+// acessos`. Ver `.env.example` e docs/METRICAS.md §5.
 
 import { coletarAcessos, comoDia, comoMes, DIAS_PADRAO } from "./lib/acessos.mjs";
 

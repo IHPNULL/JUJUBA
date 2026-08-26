@@ -53,3 +53,4 @@ play-service-account.json
 
 # documentacao interna (fica so no disco, nao vai pro repo publico)
 docs/
+.env

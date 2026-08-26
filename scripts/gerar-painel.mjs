@@ -3,8 +3,13 @@
 // Releases, acessos da versao web por dia/semana/mes, e o ponteiro para as
 // instalacoes no painel do EAS.
 //
-//   GOATCOUNTER_TOKEN=... npm run metricas
-//   GOATCOUNTER_TOKEN=... npm run metricas -- --dias=180 --saida=/tmp/painel.html
+//   npm run metricas
+//   npm run metricas -- --dias=180 --saida=/tmp/painel.html
+//
+// As chaves (GOATCOUNTER_TOKEN e, opcionalmente, GITHUB_TOKEN) saem de um
+// `.env` na raiz, lido pelo `--env-file-if-exists` em package.json; o arquivo
+// e ignorado pelo Git. Sem `.env`, o Node avisa e segue — e a variavel ainda
+// pode vir na linha de comando. Ver `.env.example`.
 //
 // O arquivo gerado e autocontido (sem CSS ou JS externo) e nao vai para o Git.
 // Cada fonte e buscada de forma independente: se uma falhar, a pagina sai com
