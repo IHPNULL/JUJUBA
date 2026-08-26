@@ -50,3 +50,6 @@ play-service-account.json
 # generated native folders
 /ios
 /android
+
+# documentacao interna (fica so no disco, nao vai pro repo publico)
+docs/

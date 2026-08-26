@@ -6,6 +6,7 @@ import mockSafeAreaContext from "react-native-safe-area-context/jest/mock";
 import Inicio from "../../../../app/index";
 import specReducer from "../../store/specSlice";
 import inicioReducer from "../../store/inicioSlice";
+import { cores } from "../../shared/theme";
 
 // SafeAreaView/SafeAreaProvider need measured frame/insets to render children
 // in the test renderer — use the library's own jest mock, the same one its
@@ -133,6 +134,47 @@ describe("Inicio (app/index.tsx) — fluxo composto", () => {
     campos = tela.getAllByPlaceholderText("0,0");
     expect(campos[2].props.value).toBe("5,0"); // SAEP
     expect(campos[3].props.value).toBe("0,5"); // Tarefa
+  });
+
+  /**
+   * O destaque rosa marca o que o USUÁRIO digitou, para separar visualmente
+   * do que a simulação gerou. Simular preenche os campos vazios — e esses
+   * campos preenchidos por simulação NÃO podem ganhar o destaque, senão
+   * depois de simular a tela inteira fica rosa e o destaque perde a função.
+   */
+  it("destaca só os campos digitados pelo usuário, não os preenchidos por simulação", async () => {
+    const loja = criarLojaDeTeste();
+    const tela = await render(
+      <Provider store={loja}>
+        <Inicio />
+      </Provider>
+    );
+
+    await fireEvent.press(tela.getByText("+ Adicionar matéria"));
+    await fireEvent.changeText(tela.getByPlaceholderText("Ex.: Biologia"), "Física");
+    await fireEvent.press(tela.getByText("Adicionar matéria"));
+
+    await waitFor(() => expect(tela.queryByText("Física")).toBeTruthy());
+
+    /** Se o campo está com o fundo/borda de "digitado pelo usuário". */
+    function destacado(campo: { props: Record<string, any> }): boolean {
+      const estilos = [campo.props.style].flat(Infinity) as ({ borderColor?: string } | null)[];
+      return estilos.some((estilo) => estilo?.borderColor === cores.rosa);
+    }
+
+    // Só o AT é digitado; os outros três continuam vazios.
+    await fireEvent.changeText(tela.getAllByPlaceholderText("0,0")[0], "5,0");
+
+    let campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos.map(destacado)).toEqual([true, false, false, false]);
+
+    // Simular preenche AO/SAEP/Tarefa — valores gerados, sem destaque.
+    await fireEvent.press(tela.getByText("Mínimo p/ 7,0"));
+    await waitFor(() => expect(tela.getAllByPlaceholderText("0,0")[1].props.value).toBe("7,5"));
+
+    campos = tela.getAllByPlaceholderText("0,0");
+    expect(campos.every((campo) => campo.props.value.trim() !== "")).toBe(true);
+    expect(campos.map(destacado)).toEqual([true, false, false, false]);
   });
 
   /**

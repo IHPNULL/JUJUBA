@@ -20,14 +20,22 @@ qual nota substituir para render mais.
 
 - **No navegador**: [ihpnull.github.io/JUJUBA](https://ihpnull.github.io/JUJUBA/)
 - **No Android**: baixe o `.apk` em [Releases](../../releases) e instale no aparelho —
-  passo a passo em [`docs/COMO-INSTALAR.md`](docs/COMO-INSTALAR.md)
+  o aparelho pede para autorizar a instalação de fora da Play Store
+
+## Feedback
+
+Achou um problema ou tem uma ideia? O botão **Feedback**, no canto superior
+direito da tela, abre um formulário no navegador — sem login e sem precisar de
+conta em lugar nenhum. Vão junto apenas a versão do app e a plataforma
+(Android, iOS ou web); nenhuma nota, matéria ou meta sai do aparelho. Cada
+resposta vira uma issue neste repositório.
 
 ## Métricas
 
 `npm run metricas` gera uma página com tudo junto: downloads do `.apk`, acessos
 da versão web por dia, semana e mês, e o ponteiro para as instalações no painel
 do EAS. Cada fonte também tem seu comando (`npm run downloads`,
-`npm run acessos`). Detalhes em [`docs/METRICAS.md`](docs/METRICAS.md).
+`npm run acessos`).
 
 ## Privacidade
 
@@ -49,8 +57,6 @@ serviços da Expo:
 GoatCounter — sem cookie e sem dado pessoal: ele guarda um hash de IP e
 navegador com um sal que muda todo dia, só para não contar a mesma visita duas
 vezes, e descarta o resto.
-
-O detalhamento campo a campo está em [`docs/METRICAS.md`](docs/METRICAS.md).
 
 ## Licença
 
