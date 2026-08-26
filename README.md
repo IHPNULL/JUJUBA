@@ -22,6 +22,15 @@ qual nota substituir para render mais.
 - **No Android**: baixe o `.apk` em [Releases](../../releases) e instale no aparelho —
   passo a passo em [`docs/COMO-INSTALAR.md`](docs/COMO-INSTALAR.md)
 
+## Feedback
+
+Achou um problema ou tem uma ideia? O botão **Feedback**, no canto superior
+direito da tela, abre um formulário no navegador — sem login e sem precisar de
+conta em lugar nenhum. Vão junto apenas a versão do app e a plataforma
+(Android, iOS ou web); nenhuma nota, matéria ou meta sai do aparelho. Cada
+resposta vira uma issue neste repositório — o caminho completo está em
+[`docs/FEEDBACK.md`](docs/FEEDBACK.md).
+
 ## Métricas
 
 `npm run metricas` gera uma página com tudo junto: downloads do `.apk`, acessos
