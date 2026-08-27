@@ -19,6 +19,13 @@ export interface Novidade {
 /** Mais nova primeiro (só a que casa com a versão instalada é usada). */
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.9.1",
+    itens: [
+      "Matéria com mais de uma frente: o objetivo do ano podia mostrar 24 de 24 e, na linha de baixo, avisar que ainda faltava ponto. A conta agora fecha.",
+      "Os pontos do objetivo aparecem sempre com uma casa depois da vírgula — 24,0 no lugar de 24.",
+    ],
+  },
+  {
     versao: "1.9.0",
     itens: [
       "Esta telinha: sempre que o app for atualizado, ela abre uma vez contando o que mudou.",
