@@ -61,6 +61,37 @@ describe("calcularPontos — soma anual com o 3º trimestre dobrado", () => {
     expect(pontos.inalcancavel).toBe(true);
   });
 
+  test("duas frentes: o total exibido e o veredito não divergem", () => {
+    // Regressão: com as frentes arredondadas ANTES da média, a média do
+    // trimestre caía em meio passo da escala (5,9 e 6,0 → 5,95) e o total
+    // anual dava 23,95 — a tela exibia "24,0 de 24,0" e, ao lado, "faltam
+    // 0,1 pontos", porque a comparação via 23,95. Um aluno via umas matérias
+    // fecharem os 24 e outras, com o mesmo número na tela, não fecharem.
+    const seis = cheio(6, 6, 6, 0);
+    const abaixo = cheio(5.9, 5.9, 5.9, 0);
+    const frentes: FrenteComNotas[] = [
+      { id: "f1", notas: [seis, seis, seis] },
+      { id: "f2", notas: [abaixo, seis, seis] },
+    ];
+    const pontos = calcularPontos(FORMULA, frentes);
+
+    // (6,0 + 5,9)/2 = 5,95 → 6,0 no trimestre; 6 + 6 + 2×6 = 24.
+    expect(pontos.mediasPorTrimestre[0].toNumber()).toBe(6);
+    expect(pontos.garantidos.toNumber()).toBe(24);
+    expect(pontos.alcancado).toBe(true);
+    expect(pontos.falta.toNumber()).toBe(0);
+  });
+
+  test("o total garantido cai sempre na escala, nunca em meio passo", () => {
+    const frentes: FrenteComNotas[] = [
+      { id: "f1", notas: [cheio(7.3, 7.1, 7, 0), cheio(6.2, 6, 6, 0), vazio()] },
+      { id: "f2", notas: [cheio(8.4, 8.1, 8, 0), cheio(5.5, 5.3, 5, 0), vazio()] },
+    ];
+    const { garantidos } = calcularPontos(FORMULA, frentes);
+
+    expect(garantidos.times(10).mod(1).toNumber()).toBe(0);
+  });
+
   test("matéria com duas frentes usa a média entre elas", () => {
     const frentes: FrenteComNotas[] = [
       { id: "f1", notas: [cheio(10, 10, 10, 0), vazio(), vazio()] },

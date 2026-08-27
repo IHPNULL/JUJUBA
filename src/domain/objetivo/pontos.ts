@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { avaliarPeriodo, mediaEntreFrentes } from "../formula/motorDeCalculo";
+import { arredondarNaEscala, mediaDaMateriaNoPeriodo } from "../formula/motorDeCalculo";
 import { FormulaSpec } from "../formula/types";
 import { FrenteComNotas, NotasDoTrimestre, PESOS_TRIMESTRE, PONTOS_OBJETIVO } from "./tipos";
 
@@ -58,12 +58,10 @@ function mediaDaMateriaNoTrimestre(
   trimestre: number,
   preencher: (componenteId: string) => Decimal
 ): Decimal {
-  if (frentes.length === 0) return new Decimal(0);
-
-  const medias = frentes.map((frente) =>
-    avaliarPeriodo(spec, materializar(spec, frente.notas[trimestre] ?? {}, preencher))
+  return mediaDaMateriaNoPeriodo(
+    spec,
+    frentes.map((frente) => materializar(spec, frente.notas[trimestre] ?? {}, preencher))
   );
-  return mediaEntreFrentes(medias);
 }
 
 function somarPonderado(medias: Decimal[]): Decimal {
@@ -84,8 +82,12 @@ export function calcularPontos(spec: FormulaSpec, frentes: FrenteComNotas[]): Po
     mediaDaMateriaNoTrimestre(spec, frentes, trimestre, maximo)
   );
 
-  const garantidos = somarPonderado(mediasPorTrimestre);
-  const maximoPossivel = somarPonderado(mediasNoTeto);
+  // Arredondados na escala ANTES de virarem veredito: `alcancado`,
+  // `inalcancavel` e `falta` precisam concordar com o número que a tela
+  // mostra. Um total de 23,95 exibido como "24,0" e classificado como "não
+  // alcançado" é a mesma matéria dando duas respostas ao mesmo tempo.
+  const garantidos = arredondarNaEscala(somarPonderado(mediasPorTrimestre), spec.escala);
+  const maximoPossivel = arredondarNaEscala(somarPonderado(mediasNoTeto), spec.escala);
 
   return {
     mediasPorTrimestre,
