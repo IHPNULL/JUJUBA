@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import { useRef } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { avaliarPeriodo, mediaEntreFrentes } from "../../../domain/formula/motorDeCalculo";
+import { avaliarPeriodo, mediaDaMateriaNoPeriodo } from "../../../domain/formula/motorDeCalculo";
 import { resolverMinimosComponentes } from "../../../domain/formula/componentGoalSolver";
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
@@ -86,16 +86,20 @@ export function CartaoMateria({
   onRemover,
   onFocarCampo,
 }: CartaoMateriaProps) {
-  const mediasFrentes = materia.frentes.map((frente) => {
+  const notasDasFrentes = materia.frentes.map((frente) => {
     const notas = frente.notas[termoSelecionado];
-    return avaliarPeriodo(spec, {
+    return {
       at: paraDecimal(notas?.at ?? ""),
       ao: paraDecimal(notas?.ao ?? ""),
       saep: paraDecimal(notas?.saep ?? ""),
       tarefa: paraDecimal(notas?.tarefa ?? ""),
-    });
+    };
   });
-  const mediaMateria = mediaEntreFrentes(mediasFrentes);
+  // A média de cada frente é uma nota reportada por si só, então aparece
+  // arredondada. A da matéria NÃO sai da média dessas já arredondadas — ver
+  // `mediaDaMateriaNoPeriodo`.
+  const mediasFrentes = notasDasFrentes.map((notas) => avaliarPeriodo(spec, notas));
+  const mediaMateria = mediaDaMateriaNoPeriodo(spec, notasDasFrentes);
   const { arredondado: mediaMateriaArredondada, texto: mediaMateriaTexto } = arredondarEFormatar(
     mediaMateria,
     spec.escala

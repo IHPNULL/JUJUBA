@@ -3,7 +3,7 @@ import Decimal from "decimal.js";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import specReal from "../specs/formula-real-trimestral.json";
-import { avaliarPeriodo, mediaEntreFrentes } from "../src/domain/formula/motorDeCalculo";
+import { mediaDaMateriaNoPeriodo, mediaEntreFrentes } from "../src/domain/formula/motorDeCalculo";
 import { resolverMinimosComponentes } from "../src/domain/formula/componentGoalSolver";
 import { FormulaSpec } from "../src/domain/formula/types";
 import { especificarFormulaAtiva } from "../src/presentation/store/specSlice";
@@ -37,16 +37,18 @@ import { CorMateria, cores } from "../src/presentation/shared/theme";
 const spec = specReal as FormulaSpec;
 
 function mediaDaMateria(materia: Materia, termo: string): Decimal {
-  const medias = materia.frentes.map((frente) => {
-    const notas = frente.notas[termo];
-    return avaliarPeriodo(spec, {
-      at: paraDecimal(notas?.at ?? ""),
-      ao: paraDecimal(notas?.ao ?? ""),
-      saep: paraDecimal(notas?.saep ?? ""),
-      tarefa: paraDecimal(notas?.tarefa ?? ""),
-    });
-  });
-  return mediaEntreFrentes(medias);
+  return mediaDaMateriaNoPeriodo(
+    spec,
+    materia.frentes.map((frente) => {
+      const notas = frente.notas[termo];
+      return {
+        at: paraDecimal(notas?.at ?? ""),
+        ao: paraDecimal(notas?.ao ?? ""),
+        saep: paraDecimal(notas?.saep ?? ""),
+        tarefa: paraDecimal(notas?.tarefa ?? ""),
+      };
+    })
+  );
 }
 
 export default function Inicio() {

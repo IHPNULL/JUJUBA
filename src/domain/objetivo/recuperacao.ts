@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { avaliarPeriodo, mediaEntreFrentes } from "../formula/motorDeCalculo";
+import { mediaDaMateriaNoPeriodo } from "../formula/motorDeCalculo";
 import { FormulaSpec } from "../formula/types";
 import { notaMaximaDe } from "./pontos";
 import { FrenteComNotas } from "./tipos";
@@ -52,9 +52,7 @@ function mediaDaMateria(
   trimestre: number,
   substituicao?: { frenteId: string; componente: string; nota: Decimal }
 ): Decimal {
-  if (frentes.length === 0) return new Decimal(0);
-
-  const medias = frentes.map((frente) => {
+  const contextos = frentes.map((frente) => {
     const notas = frente.notas[trimestre] ?? {};
     const contexto: Record<string, Decimal> = {};
     for (const componente of spec.componentes) {
@@ -64,10 +62,10 @@ function mediaDaMateria(
         ? substituicao!.nota
         : (notas[componente.id] ?? new Decimal(0));
     }
-    return avaliarPeriodo(spec, contexto);
+    return contexto;
   });
 
-  return mediaEntreFrentes(medias);
+  return mediaDaMateriaNoPeriodo(spec, contextos);
 }
 
 /** Notas que a recuperação pode substituir: as que usam a escala cheia. */

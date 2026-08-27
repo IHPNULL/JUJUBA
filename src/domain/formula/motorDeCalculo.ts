@@ -106,12 +106,26 @@ function comoDecimalObrigatorio(v: unknown, nome: string): Decimal {
  * vazio conta como zero na média ao vivo).
  */
 export function avaliarPeriodo(spec: FormulaSpec, componentes: Record<string, Decimal>): Decimal {
+  return arredondarNaEscala(avaliarPeriodoBruto(spec, componentes), spec.escala);
+}
+
+/**
+ * Mesma conta de `avaliarPeriodo`, SEM arredondar. Existe para quem ainda vai
+ * combinar este valor com outro antes de exibir — hoje, a média entre frentes.
+ * Arredondar aqui e de novo depois arredonda duas vezes o mesmo número, e o
+ * erro não é teórico: com duas frentes, duas médias de uma casa viram uma
+ * média de meia casa (ex.: 5,9 e 6,0 → 5,95), que a tela exibe como "6,0" mas
+ * compara como menor que 6. Ver `mediaDaMateriaNoPeriodo`.
+ */
+export function avaliarPeriodoBruto(
+  spec: FormulaSpec,
+  componentes: Record<string, Decimal>
+): Decimal {
   const contexto: ContextoDeCalculo = { ...componentes };
-  const bruto = comoDecimalObrigatorio(
+  return comoDecimalObrigatorio(
     avaliarExpressao(spec.calculos.mediaPeriodo, contexto),
     "mediaPeriodo"
   );
-  return arredondarNaEscala(bruto, spec.escala);
 }
 
 /**
@@ -126,4 +140,27 @@ export function mediaEntreFrentes(medias: Decimal[]): Decimal {
   }
   const soma = medias.reduce((acumulado, media) => acumulado.plus(media), new Decimal(0));
   return soma.div(medias.length);
+}
+
+/**
+ * Média da matéria num período: a média entre as frentes, arredondada UMA
+ * única vez na escala da spec.
+ *
+ * Este é o número que a escola trata como "a nota da matéria no trimestre", e
+ * por isso ele precisa cair na escala (uma casa decimal) — é ele que entra na
+ * soma dos 24 pontos e nas comparações com a meta. Calcular a média sobre as
+ * frentes JÁ arredondadas colocava o resultado entre dois passos da escala, e
+ * aí o texto exibido e o veredito divergiam.
+ *
+ * `contextosPorFrente` traz, para cada frente, o valor de cada componente da
+ * spec — mesma convenção de `avaliarPeriodo`. Matéria sem frente nenhuma vale
+ * zero, em vez de estourar.
+ */
+export function mediaDaMateriaNoPeriodo(
+  spec: FormulaSpec,
+  contextosPorFrente: Record<string, Decimal>[]
+): Decimal {
+  if (contextosPorFrente.length === 0) return new Decimal(0);
+  const brutas = contextosPorFrente.map((componentes) => avaliarPeriodoBruto(spec, componentes));
+  return arredondarNaEscala(mediaEntreFrentes(brutas), spec.escala);
 }
