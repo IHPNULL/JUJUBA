@@ -3,10 +3,14 @@ import type { CorMateria } from "../shared/theme";
 
 export const TERMOS = ["1º Tri", "2º Tri", "3º Tri"];
 
+/**
+ * Componentes digitados POR FRENTE. A SAEP não está aqui: é uma prova só,
+ * com uma nota só por trimestre, que vale para todas as frentes de todas as
+ * matérias — mora em `InicioState.saep`.
+ */
 export interface NotasFrente {
   at: string;
   ao: string;
-  saep: string;
   tarefa: string;
 }
 
@@ -28,16 +32,19 @@ interface InicioState {
   termoSelecionado: string;
   meta: number;
   materias: Materia[];
+  /** `saep[termo]` — a nota da SAEP nesse termo, igual para todas as frentes (vazio = não digitada). */
+  saep: Record<string, string>;
   /** Chaves `"materiaId|termo|frenteId|componente"` simuladas nesta sessão — nunca persistidas. */
   simulados: Record<string, boolean>;
 }
 
-const notasVazias = (): NotasFrente => ({ at: "", ao: "", saep: "", tarefa: "" });
+const notasVazias = (): NotasFrente => ({ at: "", ao: "", tarefa: "" });
 
 const initialState: InicioState = {
   termoSelecionado: TERMOS[0],
   meta: 7,
   materias: [],
+  saep: {},
   simulados: {},
 };
 
@@ -81,6 +88,10 @@ const inicioSlice = createSlice({
         return { payload: { id: nanoid(), nome, cor, quantidadeFrentes } };
       },
     },
+    /** SAEP do termo selecionado. Só o usuário digita: a simulação nunca preenche a SAEP. */
+    definirSaep(state, action: PayloadAction<string>) {
+      state.saep[state.termoSelecionado] = action.payload;
+    },
     removerMateria(state, action: PayloadAction<string>) {
       state.materias = state.materias.filter((materia) => materia.id !== action.payload);
     },
@@ -115,10 +126,19 @@ const inicioSlice = createSlice({
      * docs/ARQUITETURA.md §6. `simulados` nunca vem do payload: é sempre
      * sessão nova, nunca persistido.
      */
-    hidratar(state, action: PayloadAction<{ termoSelecionado: string; meta: number; materias: Materia[] }>) {
+    hidratar(
+      state,
+      action: PayloadAction<{
+        termoSelecionado: string;
+        meta: number;
+        materias: Materia[];
+        saep: Record<string, string>;
+      }>
+    ) {
       state.termoSelecionado = action.payload.termoSelecionado;
       state.meta = action.payload.meta;
       state.materias = action.payload.materias;
+      state.saep = action.payload.saep;
       state.simulados = {};
     },
     limparSimulados(state) {
@@ -148,6 +168,7 @@ export const {
   adicionarMateria,
   removerMateria,
   definirNotaComponente,
+  definirSaep,
   limparSimulados,
   hidratar,
 } = inicioSlice.actions;

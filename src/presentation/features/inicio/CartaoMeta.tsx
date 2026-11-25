@@ -1,9 +1,10 @@
 import Decimal from "decimal.js";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { Escala } from "../../../domain/formula/types";
 import { ProgressRing } from "../../shared/components/ProgressRing";
 import { cores } from "../../shared/theme";
+import { normalizarNota, paraDecimal } from "./simulacao";
 
 interface CartaoMetaProps {
   escala: Escala;
@@ -11,6 +12,11 @@ interface CartaoMetaProps {
   termoSelecionado: string;
   quantidadeMaterias: number;
   meta: number;
+  /** SAEP do termo selecionado — uma nota só, para todas as matérias. */
+  saep: string;
+  /** Teto da SAEP, vindo da spec. */
+  saepMaxima?: number;
+  onMudarSaep: (valor: string) => void;
   onMetaMenos: () => void;
   onMetaMais: () => void;
   onSimularTudo: () => void;
@@ -24,6 +30,9 @@ export function CartaoMeta({
   termoSelecionado,
   quantidadeMaterias,
   meta,
+  saep,
+  saepMaxima,
+  onMudarSaep,
   onMetaMenos,
   onMetaMais,
   onSimularTudo,
@@ -35,6 +44,13 @@ export function CartaoMeta({
     escala
   );
   const metaTexto = arredondarEFormatar(new Decimal(meta), escala).texto;
+
+  /** Mesma regra dos campos de nota do cartão: normaliza e recusa o que estoura o teto. */
+  function aoMudarSaep(texto: string) {
+    const normalizado = normalizarNota(texto);
+    if (saepMaxima !== undefined && normalizado.trim() !== "" && paraDecimal(normalizado).gt(saepMaxima)) return;
+    onMudarSaep(normalizado);
+  }
 
   return (
     <View style={estilos.cartao}>
@@ -63,6 +79,21 @@ export function CartaoMeta({
             <Text style={estilos.textoStepper}>+</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View style={estilos.linhaMeta}>
+        <View>
+          <Text style={estilos.rotuloMeta}>SAEP · {termoSelecionado}</Text>
+          <Text style={estilos.subtituloMeta}>Uma nota, vale para todas as matérias</Text>
+        </View>
+        <TextInput
+          testID="campo-saep"
+          value={saep}
+          onChangeText={aoMudarSaep}
+          placeholder="0,0"
+          inputMode="decimal"
+          style={[estilos.entradaSaep, saep.trim() !== "" && estilos.entradaSaepPreenchida]}
+        />
       </View>
 
       <View style={estilos.linhaAcoes}>
@@ -119,6 +150,18 @@ const estilos = StyleSheet.create({
   },
   textoStepper: { color: cores.dourado, fontWeight: "800", fontSize: 18 },
   valorMeta: { fontWeight: "800", fontSize: 20, color: cores.texto, minWidth: 44, textAlign: "center" },
+  entradaSaep: {
+    width: 76,
+    height: 40,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderColor: cores.bordaCartao,
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "700",
+    color: cores.texto,
+  },
+  entradaSaepPreenchida: { borderColor: cores.rosa, backgroundColor: cores.rosaClaro },
   linhaAcoes: { flexDirection: "row", gap: 8, marginTop: 14 },
   botaoSimular: {
     flex: 1,

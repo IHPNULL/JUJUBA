@@ -11,15 +11,16 @@ function estadoDeExemplo(): InicioState {
         id: "materia-1",
         nome: "Química",
         cor: "pink",
-        frentes: [{ id: "materia-1-unica", nome: "Única", notas: { [TERMOS[1]]: { at: "8,0", ao: "", saep: "", tarefa: "" } } }],
+        frentes: [{ id: "materia-1-unica", nome: "Única", notas: { [TERMOS[1]]: { at: "8,0", ao: "", tarefa: "" } } }],
       },
     ],
+    saep: { [TERMOS[1]]: "6,5" },
     simulados: { "materia-1|termo|frente|at": true },
   };
 }
 
 describe("serializarEstadoInicio", () => {
-  it("inclui termoSelecionado, meta e materias, mas nunca simulados", () => {
+  it("inclui termoSelecionado, meta, materias e saep, mas nunca simulados", () => {
     const json = serializarEstadoInicio(estadoDeExemplo());
     const payload = JSON.parse(json);
 
@@ -27,6 +28,7 @@ describe("serializarEstadoInicio", () => {
       termoSelecionado: TERMOS[1],
       meta: 8.5,
       materias: estadoDeExemplo().materias,
+      saep: { [TERMOS[1]]: "6,5" },
     });
     expect(payload.simulados).toBeUndefined();
   });
@@ -55,23 +57,24 @@ describe("serializarEstadoInicio — notas simuladas", () => {
               id: "fr-1",
               nome: "Frente 1",
               notas: {
-                [TERMOS[0]]: { at: "5,0", ao: "7,5", saep: "7,5", tarefa: "0,8" },
-                [TERMOS[1]]: { at: "6,0", ao: "9,0", saep: "", tarefa: "" },
+                [TERMOS[0]]: { at: "5,0", ao: "7,5", tarefa: "0,8" },
+                [TERMOS[1]]: { at: "6,0", ao: "9,0", tarefa: "" },
               },
             },
             {
               id: "fr-2",
               nome: "Frente 2",
-              notas: { [TERMOS[0]]: { at: "8,0", ao: "", saep: "", tarefa: "" } },
+              notas: { [TERMOS[0]]: { at: "8,0", ao: "", tarefa: "" } },
             },
           ],
         },
       ],
-      // AT foi digitado; AO/SAEP/Tarefa saíram do solver — inclusive num
+      // A SAEP só existe digitada: nunca é simulada, então é sempre gravada.
+      saep: { [TERMOS[0]]: "7,0" },
+      // AT foi digitado; AO/Tarefa saíram do solver — inclusive num
       // segundo termo, que `limparSimulados` (só o termo em tela) não veria.
       simulados: {
         "mat-1|1º Tri|fr-1|ao": true,
-        "mat-1|1º Tri|fr-1|saep": true,
         "mat-1|1º Tri|fr-1|tarefa": true,
         "mat-1|2º Tri|fr-1|ao": true,
       },
@@ -82,8 +85,9 @@ describe("serializarEstadoInicio — notas simuladas", () => {
     const payload = JSON.parse(serializarEstadoInicio(estadoComSimuladas()));
     const frente = payload.materias[0].frentes[0];
 
-    expect(frente.notas[TERMOS[0]]).toEqual({ at: "5,0", ao: "", saep: "", tarefa: "" });
-    expect(frente.notas[TERMOS[1]]).toEqual({ at: "6,0", ao: "", saep: "", tarefa: "" });
+    expect(frente.notas[TERMOS[0]]).toEqual({ at: "5,0", ao: "", tarefa: "" });
+    expect(frente.notas[TERMOS[1]]).toEqual({ at: "6,0", ao: "", tarefa: "" });
+    expect(payload.saep).toEqual({ [TERMOS[0]]: "7,0" });
     // Frente sem nada simulado passa intacta.
     expect(payload.materias[0].frentes[1].notas[TERMOS[0]].at).toBe("8,0");
   });
@@ -113,6 +117,7 @@ describe("hidratarPayloadInicio", () => {
       termoSelecionado: original.termoSelecionado,
       meta: original.meta,
       materias: original.materias,
+      saep: original.saep,
     });
   });
 
@@ -189,18 +194,23 @@ describe("compatibilidade com versões anteriores", () => {
 
     const matematica = payload!.materias[0];
     expect(matematica.nome).toBe("Matemática");
-    expect(matematica.frentes[0].notas["1º Tri"]).toEqual({
-      at: "8,5",
-      ao: "7",
-      saep: "6",
-      tarefa: "1",
-    });
+    // A SAEP saiu das frentes: a primeira digitada em cada termo vira a SAEP do termo.
+    expect(matematica.frentes[0].notas["1º Tri"]).toEqual({ at: "8,5", ao: "7", tarefa: "1" });
+    expect(payload!.saep).toEqual({ "1º Tri": "6" });
     expect(matematica.frentes[0].notas["2º Tri"].at).toBe("9");
 
     // Matéria com duas frentes sobrevive inteira, com as notas de cada uma.
     const fisica = payload!.materias[1];
     expect(fisica.frentes.map((frente) => frente.nome)).toEqual(["Frente 1", "Frente 2"]);
     expect(fisica.frentes[1].notas["1º Tri"].tarefa).toBe("1");
+  });
+
+  test("SAEP gravada no formato novo vence a que sobrou nas frentes", () => {
+    const misto = JSON.parse(PAYLOAD_1_7_1);
+    misto.saep = { "1º Tri": "9", "2º Tri": "8" };
+    const payload = hidratarPayloadInicio(JSON.stringify(misto));
+
+    expect(payload!.saep).toEqual({ "1º Tri": "9", "2º Tri": "8" });
   });
 
   test("payload antigo continua legível depois de reserializado", () => {

@@ -7,7 +7,7 @@ import { arredondarEFormatar } from "../../../domain/formula/exibicao";
 import { FormulaSpec } from "../../../domain/formula/types";
 import { chaveSimulado, Materia, NotasFrente } from "../../store/inicioSlice";
 import { cores } from "../../shared/theme";
-import { COMPONENTES, entradasDoSolver, normalizarNota, paraDecimal } from "./simulacao";
+import { comSaepFixa, COMPONENTES, entradasDoSolver, normalizarNota, paraDecimal } from "./simulacao";
 import { calcularObjetivoDaMateria } from "./objetivoDaMateria";
 import { PainelObjetivo } from "./PainelObjetivo";
 
@@ -17,13 +17,16 @@ interface CartaoMateriaProps {
   termoSelecionado: string;
   meta: number;
   simulados: Record<string, boolean>;
+  /** SAEP por termo — uma nota só, compartilhada por todas as frentes. */
+  saep: Record<string, string>;
   onDefinirNota: (frenteId: string, componente: keyof NotasFrente, valor: string) => void;
   onSimularMateria: () => void;
   onRemover: () => void;
   onFocarCampo?: (campo: TextInput | null) => void;
 }
 
-const ROTULOS_COMPONENTE: Record<keyof NotasFrente, string> = {
+/** Inclui a SAEP: o painel do objetivo anual também sugere nota para ela. */
+const ROTULOS_COMPONENTE: Record<keyof NotasFrente | "saep", string> = {
   at: "AT",
   ao: "Obj",
   saep: "SAEP",
@@ -81,17 +84,19 @@ export function CartaoMateria({
   termoSelecionado,
   meta,
   simulados,
+  saep,
   onDefinirNota,
   onSimularMateria,
   onRemover,
   onFocarCampo,
 }: CartaoMateriaProps) {
+  const saepDoTermo = saep[termoSelecionado] ?? "";
   const notasDasFrentes = materia.frentes.map((frente) => {
     const notas = frente.notas[termoSelecionado];
     return {
       at: paraDecimal(notas?.at ?? ""),
       ao: paraDecimal(notas?.ao ?? ""),
-      saep: paraDecimal(notas?.saep ?? ""),
+      saep: paraDecimal(saepDoTermo),
       tarefa: paraDecimal(notas?.tarefa ?? ""),
     };
   });
@@ -110,11 +115,11 @@ export function CartaoMateria({
   const resultadosMinimos = materia.frentes.map((frente) =>
     resolverMinimosComponentes(
       spec,
-      entradasDoSolver(materia, frente.id, termoSelecionado, simulados),
+      comSaepFixa(entradasDoSolver(materia, frente.id, termoSelecionado, simulados, saepDoTermo)),
       new Decimal(meta)
     )
   );
-  const objetivo = calcularObjetivoDaMateria(spec, materia, termoSelecionado, meta, simulados);
+  const objetivo = calcularObjetivoDaMateria(spec, materia, termoSelecionado, meta, simulados, saep);
 
   const algumImpossivel = resultadosMinimos.some((resultado) => resultado.tipo === "impossivel");
   const algumComVazios = resultadosMinimos.some((resultado) => resultado.tipo !== "semVazios");

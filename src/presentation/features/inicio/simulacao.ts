@@ -1,8 +1,12 @@
 import Decimal from "decimal.js";
 import { chaveSimulado, Materia, NotasFrente } from "../../store/inicioSlice";
 
-/** Ordem em que os componentes aparecem na UI e são enviados ao solver. */
-export const COMPONENTES: (keyof NotasFrente)[] = ["at", "ao", "saep", "tarefa"];
+/**
+ * Componentes digitados em cada frente, na ordem em que aparecem no cartão.
+ * A SAEP fica de fora: é uma nota só por trimestre, para todas as frentes
+ * (`InicioState.saep`), e nunca é preenchida pela simulação.
+ */
+export const COMPONENTES: (keyof NotasFrente)[] = ["at", "ao", "tarefa"];
 
 export function paraDecimal(valor: string): Decimal {
   const limpo = valor.trim().replace(",", ".");
@@ -45,10 +49,12 @@ export function entradasDoSolver(
   frenteId: string,
   termo: string,
   simulados: Record<string, boolean>,
+  saep: string,
   digitadoAgora?: CampoDigitado
 ): Record<string, Decimal | null> {
   const notas = materia.frentes.find((frente) => frente.id === frenteId)?.notas[termo];
-  const entradas: Record<string, Decimal | null> = {};
+  // A SAEP só existe digitada — nunca é simulada —, então não tem chave em `simulados`.
+  const entradas: Record<string, Decimal | null> = { saep: saep.trim() ? paraDecimal(saep) : null };
   for (const componente of COMPONENTES) {
     // O valor recém-digitado ainda não chegou na store quando quem chama
     // precisa resimular — vale mais que o que está em `materia`, e conta
@@ -62,6 +68,16 @@ export function entradasDoSolver(
     entradas[componente] = !valor || simulados[chave] ? null : paraDecimal(valor);
   }
   return entradas;
+}
+
+/**
+ * Entradas para o solver do trimestre (o que preenche campos na tela): a SAEP
+ * em aberto entra como 0, e não como campo a resolver. Como a simulação
+ * nunca escreve a SAEP, deixá-la em aberto faria o solver contar com uma nota
+ * que não aparece em lugar nenhum — e AT/Objetiva/Tarefa sairiam baixas demais.
+ */
+export function comSaepFixa(entradas: Record<string, Decimal | null>): Record<string, Decimal | null> {
+  return { ...entradas, saep: entradas.saep ?? new Decimal(0) };
 }
 
 /** Campo que o usuário acabou de digitar, ainda não refletido na store. */
