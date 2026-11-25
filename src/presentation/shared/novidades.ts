@@ -25,6 +25,8 @@ export const NOVIDADES: Novidade[] = [
       "A simulação não inventa nota de SAEP: enquanto ela não for digitada, conta como zero.",
       "Mudou a SAEP? As notas simuladas de todas as matérias se ajustam na hora.",
       "Se você já tinha digitado SAEP numa matéria, ela foi aproveitada como a SAEP do trimestre.",
+      // A 1.9.1 não chegou a ser publicada (o build falhou), então quem vem da 1.9.0 só fica sabendo desta correção por aqui.
+      "Matéria com mais de uma frente: o objetivo do ano podia mostrar 24 de 24 e, na linha de baixo, avisar que ainda faltava ponto. A conta agora fecha.",
     ],
   },
   {
