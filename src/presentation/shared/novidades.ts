@@ -19,6 +19,15 @@ export interface Novidade {
 /** Mais nova primeiro (só a que casa com a versão instalada é usada). */
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.10.0",
+    itens: [
+      "A SAEP agora é uma nota só por trimestre, que vale para todas as matérias: digite uma vez, no cartão lá de cima.",
+      "A simulação não inventa nota de SAEP: enquanto ela não for digitada, conta como zero.",
+      "Mudou a SAEP? As notas simuladas de todas as matérias se ajustam na hora.",
+      "Se você já tinha digitado SAEP numa matéria, ela foi aproveitada como a SAEP do trimestre.",
+    ],
+  },
+  {
     versao: "1.9.1",
     itens: [
       "Matéria com mais de uma frente: o objetivo do ano podia mostrar 24 de 24 e, na linha de baixo, avisar que ainda faltava ponto. A conta agora fecha.",
