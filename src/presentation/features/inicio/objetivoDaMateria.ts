@@ -22,11 +22,12 @@ import { entradasDoSolver } from "./simulacao";
  */
 export function frentesParaDominio(
   materia: Materia,
-  simulados: Record<string, boolean>
+  simulados: Record<string, boolean>,
+  saep: Record<string, string>
 ): FrenteComNotas[] {
   return materia.frentes.map((frente) => ({
     id: frente.id,
-    notas: TERMOS.map((termo) => entradasDoSolver(materia, frente.id, termo, simulados)),
+    notas: TERMOS.map((termo) => entradasDoSolver(materia, frente.id, termo, simulados, saep[termo] ?? "")),
   }));
 }
 
@@ -47,9 +48,10 @@ export function calcularObjetivoDaMateria(
   materia: Materia,
   termoSelecionado: string,
   meta: number,
-  simulados: Record<string, boolean>
+  simulados: Record<string, boolean>,
+  saep: Record<string, string>
 ): ObjetivoDaMateria {
-  const frentes = frentesParaDominio(materia, simulados);
+  const frentes = frentesParaDominio(materia, simulados, saep);
   const trimestre = Math.max(0, TERMOS.indexOf(termoSelecionado));
 
   return {

@@ -119,12 +119,13 @@ describe("inicioSlice", () => {
 
     const estado = inicioReducer(
       estadoInicial,
-      hidratar({ termoSelecionado: TERMOS[2], meta: 8.5, materias: materiasPersistidas })
+      hidratar({ termoSelecionado: TERMOS[2], meta: 8.5, materias: materiasPersistidas, saep: { [TERMOS[0]]: "7,5" } })
     );
 
     expect(estado.termoSelecionado).toBe(TERMOS[2]);
     expect(estado.meta).toBe(8.5);
     expect(estado.materias).toEqual(materiasPersistidas);
+    expect(estado.saep).toEqual({ [TERMOS[0]]: "7,5" });
   });
 
   it("hidratar sempre zera simulados — a sessão anterior nunca sobrevive à restauração", () => {
@@ -137,7 +138,7 @@ describe("inicioSlice", () => {
     );
     expect(Object.keys(estado.simulados)).toHaveLength(1);
 
-    estado = inicioReducer(estado, hidratar({ termoSelecionado: TERMOS[0], meta: 7, materias: estado.materias }));
+    estado = inicioReducer(estado, hidratar({ termoSelecionado: TERMOS[0], meta: 7, materias: estado.materias, saep: {} }));
 
     expect(estado.simulados).toEqual({});
   });

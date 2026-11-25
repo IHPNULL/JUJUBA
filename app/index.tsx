@@ -12,6 +12,7 @@ import {
   chaveSimulado,
   definirMeta,
   definirNotaComponente,
+  definirSaep,
   limitarMeta,
   limparSimulados,
   Materia,
@@ -27,6 +28,7 @@ import { AdicionarMateriaSheet } from "../src/presentation/features/inicio/Adici
 import {
   CampoDigitado,
   COMPONENTES,
+  comSaepFixa,
   entradasDoSolver,
   frenteTemSimulado,
   paraDecimal,
@@ -36,7 +38,7 @@ import { CorMateria, cores } from "../src/presentation/shared/theme";
 
 const spec = specReal as FormulaSpec;
 
-function mediaDaMateria(materia: Materia, termo: string): Decimal {
+function mediaDaMateria(materia: Materia, termo: string, saep: string): Decimal {
   return mediaDaMateriaNoPeriodo(
     spec,
     materia.frentes.map((frente) => {
@@ -44,7 +46,7 @@ function mediaDaMateria(materia: Materia, termo: string): Decimal {
       return {
         at: paraDecimal(notas?.at ?? ""),
         ao: paraDecimal(notas?.ao ?? ""),
-        saep: paraDecimal(notas?.saep ?? ""),
+        saep: paraDecimal(saep),
         tarefa: paraDecimal(notas?.tarefa ?? ""),
       };
     })
@@ -53,7 +55,8 @@ function mediaDaMateria(materia: Materia, termo: string): Decimal {
 
 export default function Inicio() {
   const dispatch = useAppDispatch();
-  const { termoSelecionado, meta, materias, simulados } = useAppSelector((state) => state.inicio);
+  const { termoSelecionado, meta, materias, saep, simulados } = useAppSelector((state) => state.inicio);
+  const saepDoTermo = saep[termoSelecionado] ?? "";
   const [sheetAberto, setSheetAberto] = useState(false);
   const { referenciaDaLista, aoFocarCampo, aoRolar, alturaTeclado } = useCampoVisivelComTeclado<Materia>();
 
@@ -62,7 +65,7 @@ export default function Inicio() {
   }, [dispatch]);
 
   const mediaGeral = materias.length
-    ? mediaEntreFrentes(materias.map((materia) => mediaDaMateria(materia, termoSelecionado)))
+    ? mediaEntreFrentes(materias.map((materia) => mediaDaMateria(materia, termoSelecionado, saepDoTermo)))
     : new Decimal(0);
 
   function definirCampo(
@@ -98,9 +101,12 @@ export default function Inicio() {
     materia: Materia,
     frenteId: string,
     metaAlvo: number = meta,
-    digitadoAgora?: CampoDigitado
+    digitadoAgora?: CampoDigitado,
+    saepAgora: string = saepDoTermo
   ) {
-    const entradas = entradasDoSolver(materia, frenteId, termoSelecionado, simulados, digitadoAgora);
+    const entradas = comSaepFixa(
+      entradasDoSolver(materia, frenteId, termoSelecionado, simulados, saepAgora, digitadoAgora)
+    );
     apagarSimuladosDaFrente(materia, frenteId, digitadoAgora?.componente);
 
     const resultado = resolverMinimosComponentes(spec, entradas, new Decimal(metaAlvo));
@@ -109,6 +115,8 @@ export default function Inicio() {
     Object.entries(resultado.valores).forEach(([componente, valor]) => {
       // Nunca escrever por cima do campo em que o usuário está digitando.
       if (componente === digitadoAgora?.componente) return;
+      // A SAEP só existe digitada (e entra fixa no solver, então nem volta aqui).
+      if (!(COMPONENTES as string[]).includes(componente)) return;
       definirCampo(
         materia,
         frenteId,
@@ -165,6 +173,23 @@ export default function Inicio() {
     );
   }
 
+  /**
+   * A SAEP entra na média de TODA frente, então os campos simulados de
+   * qualquer frente deixam de responder à pergunta certa quando ela muda —
+   * mesma lógica de `alterarMeta`. Esvaziar não resimula, como em `digitarNota`.
+   */
+  function digitarSaep(valor: string) {
+    dispatch(definirSaep(valor));
+    if (!valor.trim()) return;
+    materias.forEach((materia) =>
+      materia.frentes.forEach((frente) => {
+        if (frenteTemSimulado(materia, frente.id, termoSelecionado, simulados)) {
+          simularFrente(materia, frente.id, meta, undefined, valor);
+        }
+      })
+    );
+  }
+
   return (
     <SafeAreaView style={estilos.container} edges={["bottom"]}>
       <FlatList
@@ -183,6 +208,9 @@ export default function Inicio() {
               termoSelecionado={termoSelecionado}
               quantidadeMaterias={materias.length}
               meta={meta}
+              saep={saepDoTermo}
+              saepMaxima={spec.componentes.find((c) => c.id === "saep")?.notaMaxima}
+              onMudarSaep={digitarSaep}
               onMetaMenos={() => alterarMeta(meta - 0.5)}
               onMetaMais={() => alterarMeta(meta + 0.5)}
               onSimularTudo={() => materias.forEach((materia) => simularMateria(materia))}
@@ -202,6 +230,7 @@ export default function Inicio() {
               termoSelecionado={termoSelecionado}
               meta={meta}
               simulados={simulados}
+              saep={saep}
               onDefinirNota={(frenteId, componente, valor) =>
                 digitarNota(item, frenteId, componente, valor)
               }
